@@ -45,12 +45,28 @@
         }
     },
     "quickapp" : {},
+    "h5" : {
+        "sdkConfigs" : {
+            "maps" : {
+                "amap" : {
+                    "key" : "2d202f4d1758c6b2ae7af7787434181d",
+                    "securityJSCode" : "",
+                    "serviceHost" : ""
+                }
+            }
+        }
+    },
     "mp-weixin" : {
         "appid" : "",
         "setting" : {
             "urlCheck" : false
         },
-        "usingComponents" : true
+        "usingComponents" : true,
+        "permission" : {
+            "scope.userLocation" : {
+                "desc" : "您的位置信息将用于地图定位和管网数据采集"
+            }
+        }
     },
     "mp-alipay" : {
         "usingComponents" : true

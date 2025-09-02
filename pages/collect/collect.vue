@@ -1,15 +1,28 @@
 <template>
-  <view class="collect-container">
+  <view class="collect-container" @click="closeDropdown">
     <!-- 顶部工具栏 -->
     <view class="top-toolbar">
       <!-- 图层管理下拉框 -->
       <view class="layer-selector">
-        <picker @change="onLayerChange" :value="currentLayerIndex" :range="layerOptions">
-          <view class="picker-display">
-            <text>{{ layerOptions[currentLayerIndex] }}</text>
-            <text class="arrow">▼</text>
+        <view class="picker-display" @click.stop="toggleDropdown">
+          <text>{{ getDisplayText() }}</text>
+          <text class="arrow" :class="{ 'arrow-up': showDropdown }">▼</text>
+        </view>
+        <view class="dropdown" v-if="showDropdown" @click.stop>
+          <view class="dropdown-item select-all-item" @click="selectAll">
+            <text>全选</text>
           </view>
-        </picker>
+          <view class="dropdown-item select-all-item" @click="selectNone">
+            <text>全不选</text>
+          </view>
+          <view class="dropdown-divider"></view>
+          <view class="dropdown-item" v-for="(item, index) in layerOptions" :key="index" @click="selectLayer(index)">
+            <view class="checkbox-wrapper">
+              <text class="checkbox" :class="{ checked: selectedLayers.includes(index) }">{{ selectedLayers.includes(index) ? '✓' : '' }}</text>
+              <text class="layer-name">{{ item }}</text>
+            </view>
+          </view>
+        </view>
       </view>
       
       <!-- 探点号搜索框 -->
@@ -39,6 +52,7 @@
         @tap="onMapTap"
         @markertap="onMarkerTap"
         @regionchange="onRegionChange"
+        @error="onMapError"
         show-location
         enable-3D
         enable-overlooking
@@ -49,7 +63,7 @@
       >
         <!-- 定位按钮 -->
         <cover-view class="location-btn" @tap="getCurrentLocation">
-          <cover-image src="/static/icons/location.png" class="location-icon"></cover-image>
+          <cover-image src="/static/icons/location.svg" class="location-icon"></cover-image>
         </cover-view>
       </map>
 
@@ -268,6 +282,8 @@ const currentTool = ref('')
 const mapType = ref('vector') // vector 或 satellite
 const mapScale = ref(16)
 const currentLayerIndex = ref(0)
+const showDropdown = ref(false)
+const selectedLayers = ref([0]) // 默认选中第一个图层
 const materialIndex = ref(0)
 const lineTypeIndex = ref(0)
 const lineMaterialIndex = ref(0)
@@ -350,6 +366,71 @@ const tempPoints = ref([]) // 用于连线时的临时点
 const measurePoints = ref([]) // 测量时的点
 
 // 方法实现
+const toggleDropdown = () => {
+  showDropdown.value = !showDropdown.value
+}
+
+const selectLayer = (index) => {
+  if (selectedLayers.value.includes(index)) {
+    selectedLayers.value = selectedLayers.value.filter(i => i !== index)
+  } else {
+    selectedLayers.value.push(index)
+  }
+  
+  // 更新当前显示的图层
+  if (selectedLayers.value.length > 0) {
+    currentLayerIndex.value = selectedLayers.value[0]
+  }
+  
+  updateLayerDisplay()
+}
+
+const selectAll = () => {
+  selectedLayers.value = layerOptions.value.map((_, index) => index)
+  currentLayerIndex.value = 0
+  updateLayerDisplay()
+  uni.showToast({
+    title: '已全选所有图层',
+    icon: 'none'
+  })
+}
+
+const selectNone = () => {
+  selectedLayers.value = []
+  updateLayerDisplay()
+  uni.showToast({
+    title: '已取消选择所有图层',
+    icon: 'none'
+  })
+}
+
+const updateLayerDisplay = () => {
+  if (selectedLayers.value.length === 0) {
+    // 没有选中任何图层时的处理
+  } else if (selectedLayers.value.length === 1) {
+    currentLayerIndex.value = selectedLayers.value[0]
+  } else {
+    // 多选时显示数量
+    currentLayerIndex.value = selectedLayers.value[0]
+  }
+}
+
+const getDisplayText = () => {
+  if (selectedLayers.value.length === 0) {
+    return '请选择图层'
+  } else if (selectedLayers.value.length === 1) {
+    return layerOptions.value[selectedLayers.value[0]]
+  } else if (selectedLayers.value.length === layerOptions.value.length) {
+    return '全部图层'
+  } else {
+    return `已选择${selectedLayers.value.length}个图层`
+  }
+}
+
+const closeDropdown = () => {
+  showDropdown.value = false
+}
+
 const onLayerChange = (e) => {
   currentLayerIndex.value = e.detail.value
   uni.showToast({
@@ -714,11 +795,53 @@ const closeMeasureResult = () => {
   measureResult.show = false
 }
 
+// 地图错误处理
+const onMapError = (e) => {
+  console.error('地图加载错误:', e)
+  uni.showToast({
+    title: '地图加载失败，请检查网络连接',
+    icon: 'none',
+    duration: 3000
+  })
+}
+
 // 生命周期
 onMounted(() => {
   // 初始化数据
   console.log('采集页面初始化完成')
+  
+  // 检查定位权限并获取当前位置
+  checkLocationPermission()
 })
+
+// 检查定位权限
+const checkLocationPermission = () => {
+  uni.getSetting({
+    success: (res) => {
+      if (res.authSetting['scope.userLocation'] !== undefined && res.authSetting['scope.userLocation'] !== true) {
+        uni.showModal({
+          title: '请求授权当前位置',
+          content: '需要获取您的地理位置，请确认授权',
+          success: (res) => {
+            if (res.confirm) {
+              uni.openSetting({
+                success: (res) => {
+                  if (res.authSetting['scope.userLocation'] === true) {
+                    getCurrentLocation()
+                  }
+                }
+              })
+            }
+          }
+        })
+      } else if (res.authSetting['scope.userLocation'] === undefined) {
+        getCurrentLocation()
+      } else {
+        getCurrentLocation()
+      }
+    }
+  })
+}
 </script>
 
 <style lang="scss" scoped>
@@ -740,6 +863,7 @@ onMounted(() => {
   
   .layer-selector {
     margin-right: 15px;
+    position: relative;
     
     .picker-display {
       display: flex;
@@ -748,11 +872,92 @@ onMounted(() => {
       background: #f0f0f0;
       border-radius: 4px;
       font-size: 14px;
+      cursor: pointer;
       
       .arrow {
         margin-left: 8px;
         font-size: 12px;
         color: #666;
+        transition: transform 0.3s ease;
+        
+        &.arrow-up {
+          transform: rotate(180deg);
+        }
+      }
+    }
+    
+    .dropdown {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      min-width: 150px;
+      width: max-content;
+      background: white;
+      border-radius: 4px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      z-index: 1000;
+      max-height: 300px;
+      overflow-y: auto;
+      
+      .dropdown-item {
+        padding: 10px 16px;
+        cursor: pointer;
+        border-bottom: 1px solid #f0f0f0;
+        white-space: nowrap;
+        
+        &:hover {
+          background: #f8f8f8;
+        }
+        
+        &:last-child {
+          border-bottom: none;
+        }
+        
+        &.select-all-item {
+          background: #e3f2fd;
+          color: #2196F3;
+          font-weight: bold;
+          text-align: center;
+          
+          &:hover {
+            background: #bbdefb;
+          }
+        }
+        
+        .checkbox-wrapper {
+          display: flex;
+          align-items: center;
+          
+          .checkbox {
+            width: 16px;
+            height: 16px;
+            border: 1px solid #ddd;
+            border-radius: 2px;
+            margin-right: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            color: white;
+            
+            &.checked {
+              background: #2196F3;
+              border-color: #2196F3;
+            }
+          }
+          
+          .layer-name {
+            flex: 1;
+            font-size: 14px;
+            white-space: nowrap;
+          }
+        }
+      }
+      
+      .dropdown-divider {
+        height: 1px;
+        background: #e0e0e0;
+        margin: 4px 0;
       }
     }
   }
@@ -784,10 +989,12 @@ onMounted(() => {
 .map-wrapper {
   flex: 1;
   position: relative;
+  min-height: 400px; /* 确保地图容器有最小高度 */
   
   .amap {
     width: 100%;
     height: 100%;
+    min-height: 400px; /* 确保地图有最小高度 */
   }
   
   .location-btn {

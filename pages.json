@@ -75,6 +75,12 @@
 			"style": {
 				"navigationBarTitleText": "帮助与支持"
 			}
+		},
+		{
+			"path": "pages/test-map",
+			"style": {
+				"navigationBarTitleText": "地图测试"
+			}
 		}
 	],
 	"globalStyle": {
@@ -88,24 +94,22 @@
 		"selectedColor": "#007AFF",
 		"borderStyle": "black",
 		"backgroundColor": "#ffffff",
+		"height": "60px",
+		"fontSize": "14px",
+		"iconWidth": "28px",
+		"spacing": "3px",
 		"list": [
 			{
 				"pagePath": "pages/collect/collect",
-				"iconPath": "static/icons/collect.png",
-				"selectedIconPath": "static/icons/collect-active.png",
-				"text": "采集"
+				"text": "📍 采集"
 			},
 			{
-				"pagePath": "pages/statistics/statistics",
-				"iconPath": "static/icons/statistics.png",
-				"selectedIconPath": "static/icons/statistics-active.png",
-				"text": "统计"
+				"pagePath": "pages/statistics/statistics", 
+				"text": "📊 统计"
 			},
 			{
 				"pagePath": "pages/profile/profile",
-				"iconPath": "static/icons/profile.png",
-				"selectedIconPath": "static/icons/profile-active.png",
-				"text": "我的"
+				"text": "👤 我的"
 			}
 		]
 	}
