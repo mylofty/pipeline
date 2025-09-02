@@ -22,7 +22,7 @@
 
   
 说明：下图登录界面，用户输入手机号获取验证码。  
-![alt text](image.png)
+![alt text](docs/image.png)
 
 用户登录后，需要问询用户进行权限授权，授权如下：  
 • 存储权限：用于本地数据保存。  
@@ -41,7 +41,7 @@
   • 加载本地离线底图（.shp或.tif格式）。  
 
 • 界面示例：  
-![alt text](image-1.png)
+![alt text](docs/image-1.png)
 
 项目创建成功后，便可以进入主页，主页底部包含三个tab，分别为：采集、统计、我的。
   
@@ -50,7 +50,7 @@
 
 界面示例：
 
-![alt text](image-2.png)
+![alt text](docs/image-2.png)
 
 采集模块页包含一个高德地图作为底图，顶部包含一个图层管理下拉框、探点号搜索框，右下角包含一个定位图标，点击定位图标即可开启GPS定位。右侧还包含一个侧边工具栏，包含以下功能按钮：
 - 影像/矢量切换
@@ -90,7 +90,7 @@
 
 • 在线切换地图类型（默认矢量，可切换影像）。 
 
-![alt text](image-3.png)
+![alt text](docs/image-3.png)
 
 • 注意：需联网使用；无网络时建议加载离线底图。  
 
@@ -99,41 +99,42 @@
 ### 2.3.5 创建工具集
 
 • 管点：录入管点位置、属性及关联附件。  
-![alt text](image-4.png)
+![alt text](docs/image-4.png)
     
 • 管线：连接2个管点生成管线并录入属性。  
-![alt text](image-5.png)
+![alt text](docs/image-5.png)
     
 • 虚拟线：通过1个管点生成虚拟线，可转为实线。  
-![alt text](image-6.png)
+![alt text](docs/image-6.png)
     
 • 共管：复制管线实现多类型管线共存（加粗显示）。  
-![alt text](image-7.png)
+![alt text](docs/image-7.png)
     
 • 插入：在管线间插入新管点。  
-![alt text](image-8.png)
+![alt text](docs/image-8.png)
     
 • 收点：完成管点采集（显示√符号），支持编号连续。  
-![alt text](image-9.png)
-![alt text](image-10.png)    
+![alt text](docs/image-9.png)
+![alt text](docs/image-10.png)    
     
 
 ### 2.3.6 编辑工具集
 
 • 编辑：修改管点/管线属性及附件。  
-![alt text](image-11.png)
+![alt text](docs/image-11.png)
     
-• 测量：辅助长度/面积测量。  
+• 测量：可实现任意位置的长度测量与面积测量，辅助日常管网采集作业。  
+![alt text](docs/image-12.png)
 
     
 • 流向：修改管线流向符号及属性值。  
-
+![alt text](docs/image-13.png)
     
 • 移动：拖动管点至新位置。  
-
+![alt text](docs/image-14.png)
     
 • 删除：删除管点、管线或标记。  
-
+![alt text](docs/image-15.png)
     
 
 ## 2.4 统计模块
@@ -141,46 +142,49 @@
 • 自动汇总管点总数与管线长度。  
 
 • 界面示例：  
-
+![alt text](docs/image-16.png)
   
 
 ## 2.5 我的模块
+• 界面示例： 
+![alt text](docs/image-17.png)
 
-• 管理用户设置、数据导入导出等。  
+包含如下几个列表项：
 
-  
-
-2.5.1 管类设置
+### 2.5.1 管类设置
 
 • 新增/删除管线/管点类别。  
-
+![alt text](docs/image-18.png)
   
 
-2.5.2 属性设置
+### 2.5.2 属性设置
 
 • 控制属性在采集中是否显示。  
-
+![alt text](docs/image-19.png)
   
 
-2.5.3 特征/附属物设置
+### 2.5.3 特征/附属物设置
 
 • 管理特征与附属物。  
-
+![alt text](docs/image-20.png)
   
 
-2.5.4 数据导出
+### 2.5.4 数据导出
 
 • 导出Excel至指定目录（/pipeline/excel）。  
+![alt text](docs/image-21.png)
 
+导出的数据分为2类，一类为综合表，包含管线与管点信
+息；另一类为管线表与管点表
   
 
-2.5.5 数据导入
+### 2.5.5 数据导入
 
 • 支持综合表或管点管线表导入。  
-
+![alt text](docs/image-22.png)
   
 
-2.5.6 帮助与支持
+### 2.5.6 帮助与支持
 
 • 版本更新：检测并提示新版本下载。  
 

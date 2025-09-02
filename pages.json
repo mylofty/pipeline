@@ -1,17 +1,112 @@
 {
-	"pages": [ //pages数组中第一项表示应用启动页，参考：https://uniapp.dcloud.io/collocation/pages
+	"pages": [
+		{
+			"path": "pages/login/login",
+			"style": {
+				"navigationBarTitleText": "绘管通",
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path": "pages/project/project",
+			"style": {
+				"navigationBarTitleText": "项目管理",
+				"navigationBarBackgroundColor": "#007AFF"
+			}
+		},
 		{
 			"path": "pages/index/index",
 			"style": {
-				"navigationBarTitleText": "uni-app"
+				"navigationBarTitleText": "绘管通",
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path": "pages/collect/collect",
+			"style": {
+				"navigationBarTitleText": "采集",
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path": "pages/statistics/statistics",
+			"style": {
+				"navigationBarTitleText": "统计"
+			}
+		},
+		{
+			"path": "pages/profile/profile",
+			"style": {
+				"navigationBarTitleText": "我的"
+			}
+		},
+		{
+			"path": "pages/settings/pipe-type",
+			"style": {
+				"navigationBarTitleText": "管类设置"
+			}
+		},
+		{
+			"path": "pages/settings/attribute",
+			"style": {
+				"navigationBarTitleText": "属性设置"
+			}
+		},
+		{
+			"path": "pages/settings/feature",
+			"style": {
+				"navigationBarTitleText": "特征/附属物设置"
+			}
+		},
+		{
+			"path": "pages/data/export",
+			"style": {
+				"navigationBarTitleText": "数据导出"
+			}
+		},
+		{
+			"path": "pages/data/import",
+			"style": {
+				"navigationBarTitleText": "数据导入"
+			}
+		},
+		{
+			"path": "pages/help/help",
+			"style": {
+				"navigationBarTitleText": "帮助与支持"
 			}
 		}
 	],
 	"globalStyle": {
-		"navigationBarTextStyle": "black",
-		"navigationBarTitleText": "uni-app",
-		"navigationBarBackgroundColor": "#F8F8F8",
+		"navigationBarTextStyle": "white",
+		"navigationBarTitleText": "绘管通",
+		"navigationBarBackgroundColor": "#007AFF",
 		"backgroundColor": "#F8F8F8"
 	},
-	"uniIdRouter": {}
+	"tabBar": {
+		"color": "#7A7E83",
+		"selectedColor": "#007AFF",
+		"borderStyle": "black",
+		"backgroundColor": "#ffffff",
+		"list": [
+			{
+				"pagePath": "pages/collect/collect",
+				"iconPath": "static/icons/collect.png",
+				"selectedIconPath": "static/icons/collect-active.png",
+				"text": "采集"
+			},
+			{
+				"pagePath": "pages/statistics/statistics",
+				"iconPath": "static/icons/statistics.png",
+				"selectedIconPath": "static/icons/statistics-active.png",
+				"text": "统计"
+			},
+			{
+				"pagePath": "pages/profile/profile",
+				"iconPath": "static/icons/profile.png",
+				"selectedIconPath": "static/icons/profile-active.png",
+				"text": "我的"
+			}
+		]
+	}
 }

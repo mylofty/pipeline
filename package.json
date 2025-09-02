@@ -1,0 +1,31 @@
+{
+  "name": "pipeline",
+  "version": "1.0.0",
+  "description": "绘管通 - 管网数据采集系统",
+  "main": "main.js",
+  "scripts": {
+    "dev": "uni build --watch",
+    "build": "uni build",
+    "build:app": "uni build --platform app",
+    "build:h5": "uni build --platform h5",
+    "build:mp-weixin": "uni build --platform mp-weixin"
+  },
+  "keywords": [
+    "uniapp",
+    "vue3",
+    "管网采集",
+    "GIS"
+  ],
+  "author": "广东绘宇智能勘测科技有限公司",
+  "license": "MIT",
+  "dependencies": {
+    "@dcloudio/uni-app": "^3.0.0",
+    "@dcloudio/uni-components": "^3.0.0",
+    "vue": "^3.0.0"
+  },
+  "devDependencies": {
+    "@dcloudio/uni-cli": "^3.0.0",
+    "sass": "^1.0.0",
+    "sass-loader": "^10.0.0"
+  }
+}
