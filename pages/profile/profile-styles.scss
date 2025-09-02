@@ -58,13 +58,13 @@
 	padding: 20rpx;
 	
 	.menu-section {
-		margin-bottom: 40rpx;
+		margin-bottom: 30rpx;
 		
 		.section-title {
 			display: block;
-			font-size: 28rpx;
+			font-size: 26rpx;
 			color: #666;
-			margin-bottom: 20rpx;
+			margin-bottom: 15rpx;
 			padding-left: 10rpx;
 		}
 		
@@ -76,7 +76,7 @@
 			.menu-item {
 				display: flex;
 				align-items: center;
-				padding: 30rpx;
+				padding: 20rpx 25rpx;
 				border-bottom: 1rpx solid #f0f0f0;
 				
 				&:last-child {
@@ -90,9 +90,9 @@
 				}
 				
 				.menu-icon {
-					width: 50rpx;
-					height: 50rpx;
-					margin-right: 25rpx;
+					width: 40rpx;
+					height: 40rpx;
+					margin-right: 20rpx;
 				}
 				
 				.menu-content {
@@ -100,20 +100,22 @@
 					
 					.menu-title {
 						display: block;
-						font-size: 30rpx;
+						font-size: 28rpx;
 						color: #333;
-						margin-bottom: 8rpx;
+						margin-bottom: 4rpx;
+						line-height: 1.3;
 					}
 					
 					.menu-desc {
-						font-size: 24rpx;
+						font-size: 22rpx;
 						color: #999;
+						line-height: 1.2;
 					}
 				}
 				
 				.menu-arrow {
 					color: #ccc;
-					font-size: 28rpx;
+					font-size: 24rpx;
 				}
 				
 				.update-badge {
@@ -140,7 +142,7 @@
 	background: white;
 	margin: 20rpx;
 	border-radius: 15rpx;
-	padding: 30rpx;
+	padding: 25rpx;
 	
 	.storage-title {
 		display: block;
@@ -157,7 +159,7 @@
 			display: flex;
 			justify-content: space-between;
 			align-items: center;
-			padding: 15rpx 0;
+			padding: 10rpx 0;
 			
 			.storage-label {
 				font-size: 28rpx;
