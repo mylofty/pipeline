@@ -668,6 +668,7 @@ const closeLineModal = () => {
   })
 }
 
+// 创建管点
 const savePoint = () => {
   if (!pointForm.pointNo.trim()) {
     uni.showToast({
@@ -682,13 +683,15 @@ const savePoint = () => {
     longitude: pointForm.longitude,
     latitude: pointForm.latitude,
     title: pointForm.pointNo,
-    iconPath: '/static/icons/point.png',
+    iconPath: '/static/icons/point.svg',
     width: 30,
     height: 30,
     data: { ...pointForm }
   }
 
   markers.value.push(newMarker)
+  // 强制更新地图组件
+  markers.value = [...markers.value]
   closePointModal()
 
   uni.showToast({
@@ -697,6 +700,7 @@ const savePoint = () => {
   })
 }
 
+//创建管线
 const saveLine = () => {
   if (!lineForm.type) {
     uni.showToast({

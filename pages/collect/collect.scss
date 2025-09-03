@@ -244,7 +244,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 1000;
+  z-index: 998;
   
   .modal-content {
     width: 90%;
@@ -293,7 +293,7 @@
         }
         
         input, textarea {
-          width: 100%;
+          width: 92%;
           padding: 8px 12px;
           border: 1px solid #ddd;
           border-radius: 4px;
@@ -316,6 +316,7 @@
           border-radius: 4px;
           background: white;
           font-size: 14px;
+          z-index: 999;
         }
       }
     }
