@@ -18,49 +18,28 @@
           <view class="dropdown-divider"></view>
           <view class="dropdown-item" v-for="(item, index) in layerOptions" :key="index" @click="selectLayer(index)">
             <view class="checkbox-wrapper">
-              <text class="checkbox" :class="{ checked: selectedLayers.includes(index) }">{{ selectedLayers.includes(index) ? '✓' : '' }}</text>
+              <text class="checkbox" :class="{ checked: selectedLayers.includes(index) }">{{
+                selectedLayers.includes(index) ? '✓' : '' }}</text>
               <text class="layer-name">{{ item }}</text>
             </view>
           </view>
         </view>
       </view>
-      
+
       <!-- 探点号搜索框 -->
       <view class="search-container">
-        <input 
-          type="text" 
-          placeholder="搜索管点物探点号..." 
-          v-model="searchPointNo"
-          @confirm="searchPoint"
-          class="search-input"
-        />
+        <input type="text" placeholder="搜索管点物探点号..." v-model="searchPointNo" @confirm="searchPoint"
+          class="search-input" />
         <view class="search-btn" @click="searchPoint">🔍</view>
       </view>
     </view>
 
     <!-- 地图容器 -->
     <view class="map-wrapper">
-      <map 
-        id="amap"
-        class="amap"
-        :longitude="mapCenter.longitude"
-        :latitude="mapCenter.latitude"
-        :scale="mapScale"
-        :markers="markers"
-        :polyline="polylines"
-        :polygons="polygons"
-        @tap="onMapTap"
-        @markertap="onMarkerTap"
-        @regionchange="onRegionChange"
-        @error="onMapError"
-        show-location
-        enable-3D
-        enable-overlooking
-        enable-zoom
-        enable-scroll
-        enable-rotate
-        :enable-satellite="mapType === 'satellite'"
-      >
+      <map id="amap" class="amap" :longitude="mapCenter.longitude" :latitude="mapCenter.latitude" :scale="mapScale"
+        :markers="markers" :polyline="polylines" :polygons="polygons" @tap="onMapTap" @markertap="onMarkerTap"
+        @regionchange="onRegionChange" @error="onMapError" show-location enable-3D enable-overlooking enable-zoom
+        enable-scroll enable-rotate :enable-satellite="mapType === 'satellite'">
         <!-- 定位按钮 -->
         <cover-view class="location-btn" @tap="getCurrentLocation">
           <cover-image src="/static/icons/location.svg" class="location-icon"></cover-image>
@@ -68,12 +47,8 @@
       </map>
 
       <!-- 右侧工具栏 -->
-      <RightToolbar 
-        :mapType="mapType" 
-        :currentTool="currentTool"
-        @toggleMapType="toggleMapType"
-        @selectTool="selectTool"
-      />
+      <RightToolbar :mapType="mapType" :currentTool="currentTool" @toggleMapType="toggleMapType"
+        @selectTool="selectTool" />
     </view>
 
     <!-- 管点属性弹窗 -->
@@ -187,7 +162,7 @@ const lineMaterialIndex = ref(0)
 // 图层选项
 const layerOptions = ref([
   '给水管网',
-  '排水管网', 
+  '排水管网',
   '燃气管网',
   '热力管网',
   '电力管网',
@@ -272,12 +247,12 @@ const selectLayer = (index) => {
   } else {
     selectedLayers.value.push(index)
   }
-  
+
   // 更新当前显示的图层
   if (selectedLayers.value.length > 0) {
     currentLayerIndex.value = selectedLayers.value[0]
   }
-  
+
   updateLayerDisplay()
 }
 
@@ -335,12 +310,12 @@ const searchPoint = () => {
     })
     return
   }
-  
+
   // 搜索逻辑
-  const foundMarker = markers.value.find(marker => 
+  const foundMarker = markers.value.find(marker =>
     marker.title && marker.title.includes(searchPointNo.value)
   )
-  
+
   if (foundMarker) {
     mapCenter.longitude = foundMarker.longitude
     mapCenter.latitude = foundMarker.latitude
@@ -367,14 +342,14 @@ const toggleMapType = () => {
 
 const selectTool = (tool) => {
   currentTool.value = currentTool.value === tool ? '' : tool
-  
+
   // 清除临时数据
   tempPoints.value = []
   measurePoints.value = []
-  
+
   const toolNames = {
     point: '管点工具',
-    line: '管线工具', 
+    line: '管线工具',
     virtual: '虚拟线工具',
     shared: '共管工具',
     insert: '插入工具',
@@ -385,7 +360,7 @@ const selectTool = (tool) => {
     move: '移动工具',
     delete: '删除工具'
   }
-  
+
   if (currentTool.value) {
     uni.showToast({
       title: `已选择${toolNames[tool]}`,
@@ -394,9 +369,11 @@ const selectTool = (tool) => {
   }
 }
 
+//创建工具
 const onMapTap = (e) => {
+  console.log('经纬度', e);
   const { longitude, latitude } = e.detail
-  
+
   switch (currentTool.value) {
     case 'point':
       createPoint(longitude, latitude)
@@ -418,6 +395,7 @@ const onMapTap = (e) => {
   }
 }
 
+// 打点
 const createPoint = (longitude, latitude) => {
   pointForm.longitude = longitude
   pointForm.latitude = latitude
@@ -425,9 +403,10 @@ const createPoint = (longitude, latitude) => {
   showPointModal.value = true
 }
 
+// 连线（管线工具）
 const handleLineCreation = (longitude, latitude) => {
   tempPoints.value.push({ longitude, latitude })
-  
+
   if (tempPoints.value.length === 1) {
     uni.showToast({
       title: '请点击第二个点完成管线绘制',
@@ -436,7 +415,7 @@ const handleLineCreation = (longitude, latitude) => {
   } else if (tempPoints.value.length === 2) {
     lineForm.startPoint = tempPoints.value[0]
     lineForm.endPoint = tempPoints.value[1]
-    
+
     // 计算长度
     const distance = calculateDistance(
       tempPoints.value[0].latitude,
@@ -445,14 +424,14 @@ const handleLineCreation = (longitude, latitude) => {
       tempPoints.value[1].longitude
     )
     lineForm.length = distance.toFixed(2)
-    
+
     showLineModal.value = true
     tempPoints.value = []
   }
 }
 
+// 创建虚拟线逻辑
 const createVirtualLine = (longitude, latitude) => {
-  // 创建虚拟线逻辑
   const virtualLine = {
     points: [
       { longitude, latitude },
@@ -463,34 +442,36 @@ const createVirtualLine = (longitude, latitude) => {
     dottedLine: true
   }
   polylines.value.push(virtualLine)
-  
+
   uni.showToast({
     title: '虚拟线创建成功',
     icon: 'success'
   })
 }
 
+// 测量工具
 const handleMeasure = (longitude, latitude) => {
   measurePoints.value.push({ longitude, latitude })
-  
+
   if (measurePoints.value.length >= 2) {
     let totalDistance = 0
     for (let i = 1; i < measurePoints.value.length; i++) {
       const distance = calculateDistance(
-        measurePoints.value[i-1].latitude,
-        measurePoints.value[i-1].longitude,
+        measurePoints.value[i - 1].latitude,
+        measurePoints.value[i - 1].longitude,
         measurePoints.value[i].latitude,
         measurePoints.value[i].longitude
       )
       totalDistance += distance
     }
-    
+
     measureResult.text = `总长度: ${totalDistance.toFixed(2)}米`
     measureResult.type = 'distance'
     measureResult.show = true
   }
 }
 
+//插入工具
 const insertPoint = (longitude, latitude) => {
   // 在最近的管线上插入点
   uni.showToast({
@@ -503,13 +484,14 @@ const calculateDistance = (lat1, lon1, lat2, lon2) => {
   const R = 6371000 // 地球半径（米）
   const dLat = (lat2 - lat1) * Math.PI / 180
   const dLon = (lon2 - lon1) * Math.PI / 180
-  const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+  const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
     Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
-    Math.sin(dLon/2) * Math.sin(dLon/2)
-  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a))
+    Math.sin(dLon / 2) * Math.sin(dLon / 2)
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
   return R * c
 }
 
+//定位
 const getCurrentLocation = () => {
   uni.getLocation({
     type: 'gcj02',
@@ -534,7 +516,7 @@ const getCurrentLocation = () => {
 const onMarkerTap = (e) => {
   const markerId = e.detail.markerId
   const marker = markers.value.find(m => m.id === markerId)
-  
+
   if (currentTool.value === 'edit' && marker) {
     // 编辑管点
     Object.assign(pointForm, marker.data || {})
@@ -602,7 +584,7 @@ const savePoint = () => {
     })
     return
   }
-  
+
   const newMarker = {
     id: Date.now(),
     longitude: pointForm.longitude,
@@ -613,10 +595,10 @@ const savePoint = () => {
     height: 30,
     data: { ...pointForm }
   }
-  
+
   markers.value.push(newMarker)
   closePointModal()
-  
+
   uni.showToast({
     title: '管点创建成功',
     icon: 'success'
@@ -631,17 +613,17 @@ const saveLine = () => {
     })
     return
   }
-  
+
   const newLine = {
     points: [lineForm.startPoint, lineForm.endPoint],
     color: getLineColor(lineForm.type),
     width: 4,
     data: { ...lineForm }
   }
-  
+
   polylines.value.push(newLine)
   closeLineModal()
-  
+
   uni.showToast({
     title: '管线创建成功',
     icon: 'success'
@@ -651,7 +633,7 @@ const saveLine = () => {
 const getLineColor = (type) => {
   const colors = {
     '主管': '#2196F3',
-    '支管': '#4CAF50', 
+    '支管': '#4CAF50',
     '接户管': '#FF9800',
     '阀门': '#F44336',
     '其他': '#9E9E9E'
@@ -697,7 +679,7 @@ const onMapError = (e) => {
 onMounted(() => {
   // 初始化数据
   console.log('采集页面初始化完成')
-  
+
   // 检查定位权限并获取当前位置
   checkLocationPermission()
 })
