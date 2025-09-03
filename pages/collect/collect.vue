@@ -371,27 +371,34 @@ const selectTool = (tool) => {
 
 //创建工具
 const onMapTap = (e) => {
-  console.log('经纬度', e);
-  const { longitude, latitude } = e.detail
-
-  switch (currentTool.value) {
-    case 'point':
-      createPoint(longitude, latitude)
-      break
-    case 'line':
-      handleLineCreation(longitude, latitude)
-      break
-    case 'virtual':
-      createVirtualLine(longitude, latitude)
-      break
-    case 'measure':
-      handleMeasure(longitude, latitude)
-      break
-    case 'insert':
-      insertPoint(longitude, latitude)
-      break
-    default:
-      break
+  // 高德地图的点击事件坐标在detail对象中
+  const { detail } = e;
+  
+  if (detail && detail.longitude && detail.latitude) {
+    const { longitude, latitude } = detail;
+    console.log('点击坐标:', longitude, latitude);
+    
+    switch (currentTool.value) {
+      case 'point':
+        createPoint(longitude, latitude);
+        break;
+      case 'line':
+        handleLineCreation(longitude, latitude);
+        break;
+      case 'virtual':
+        createVirtualLine(longitude, latitude);
+        break;
+      case 'measure':
+        handleMeasure(longitude, latitude);
+        break;
+      case 'insert':
+        insertPoint(longitude, latitude);
+        break;
+      default:
+        break;
+    }
+  } else {
+    console.warn('无法获取坐标信息', e);
   }
 }
 
@@ -514,6 +521,8 @@ const getCurrentLocation = () => {
 }
 
 const onMarkerTap = (e) => {
+console.log('onMarkerTap',e);
+
   const markerId = e.detail.markerId
   const marker = markers.value.find(m => m.id === markerId)
 
