@@ -15,8 +15,18 @@
             "autoclose" : true,
             "delay" : 0
         },
-        "modules" : {},
+        "modules" : {
+            "Maps" : {}
+        },
         "distribute" : {
+            "sdkConfigs" : {
+                "maps" : {
+                    "amap" : {
+                        "appkey_ios" : "2d202f4d1758c6b2ae7af7787434181d",
+                        "appkey_android" : "2d202f4d1758c6b2ae7af7787434181d"
+                    }
+                }
+            },
             "android" : {
                 "permissions" : [
                     "<uses-permission android:name=\"android.permission.CHANGE_NETWORK_STATE\"/>",

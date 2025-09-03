@@ -425,3 +425,59 @@
     }
   }
 }
+
+// 地图中心十字准星
+.map-crosshair {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  z-index: 100;
+  
+  .crosshair-horizontal {
+    position: absolute;
+    top: -1px;
+    left: -15px;
+    width: 30px;
+    height: 2px;
+    background: #ff4444;
+    border-radius: 1px;
+    box-shadow: 0 0 4px rgba(255, 68, 68, 0.5);
+  }
+  
+  .crosshair-vertical {
+    position: absolute;
+    top: -15px;
+    left: -1px;
+    width: 2px;
+    height: 30px;
+    background: #ff4444;
+    border-radius: 1px;
+    box-shadow: 0 0 4px rgba(255, 68, 68, 0.5);
+  }
+}
+
+// 创建按钮
+.create-btn {
+  position: absolute;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #2196F3;
+  color: white;
+  padding: 10px 20px;
+  border-radius: 25px;
+  box-shadow: 0 4px 12px rgba(33, 150, 243, 0.3);
+  z-index: 100;
+  
+  .create-text {
+    font-size: 14px;
+    color: white;
+    font-weight: 500;
+  }
+  
+  &:active {
+    transform: translateX(-50%) scale(0.95);
+  }
+}

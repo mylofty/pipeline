@@ -37,12 +37,24 @@
     <!-- 地图容器 -->
     <view class="map-wrapper">
       <map id="amap" class="amap" :longitude="mapCenter.longitude" :latitude="mapCenter.latitude" :scale="mapScale"
-        :markers="markers" :polyline="polylines" :polygons="polygons" @tap="onMapTap" @markertap="onMarkerTap"
-        @regionchange="onRegionChange" @error="onMapError" show-location enable-3D enable-overlooking enable-zoom
-        enable-scroll enable-rotate :enable-satellite="mapType === 'satellite'">
+        :markers="markers" :polyline="polylines" :polygons="polygons" @tap="onMapTap" @click="onMapTap" @markertap="onMarkerTap"
+        @regionchange="onRegionChange" @error="onMapError" @callouttap="onCalloutTap" @controltap="onControlTap"
+        show-location enable-3D enable-overlooking enable-zoom enable-scroll enable-rotate 
+        :enable-satellite="mapType === 'satellite'">
         <!-- 定位按钮 -->
         <cover-view class="location-btn" @tap="getCurrentLocation">
           <cover-image src="/static/icons/location.svg" class="location-icon"></cover-image>
+        </cover-view>
+        
+        <!-- 地图中心十字准星 -->
+        <cover-view class="map-crosshair" v-if="currentTool">
+          <cover-view class="crosshair-horizontal"></cover-view>
+          <cover-view class="crosshair-vertical"></cover-view>
+        </cover-view>
+        
+        <!-- 创建按钮 -->
+        <cover-view class="create-btn" v-if="currentTool" @tap="createAtCenter">
+          <cover-text class="create-text">在此创建{{ getToolName(currentTool) }}</cover-text>
         </cover-view>
       </map>
 
@@ -371,35 +383,106 @@ const selectTool = (tool) => {
 
 //创建工具
 const onMapTap = (e) => {
-  // 高德地图的点击事件坐标在detail对象中
-  const { detail } = e;
+  console.log('地图点击事件完整对象:', JSON.stringify(e, null, 2));
   
-  if (detail && detail.longitude && detail.latitude) {
-    const { longitude, latitude } = detail;
-    console.log('点击坐标:', longitude, latitude);
-    
-    switch (currentTool.value) {
-      case 'point':
-        createPoint(longitude, latitude);
-        break;
-      case 'line':
-        handleLineCreation(longitude, latitude);
-        break;
-      case 'virtual':
-        createVirtualLine(longitude, latitude);
-        break;
-      case 'measure':
-        handleMeasure(longitude, latitude);
-        break;
-      case 'insert':
-        insertPoint(longitude, latitude);
-        break;
-      default:
-        break;
-    }
-  } else {
-    console.warn('无法获取坐标信息', e);
+  // H5环境下uni-app的map组件可能无法直接获取点击坐标
+  // 作为临时解决方案，使用地图中心点坐标
+  if (!currentTool.value) {
+    uni.showToast({
+      title: '请先选择创建工具',
+      icon: 'none'
+    });
+    return;
   }
+  
+  // 提示用户使用地图中心点
+  uni.showModal({
+    title: '创建确认',
+    content: `将在地图中心位置创建${getToolName(currentTool.value)}，是否继续？`,
+    success: (res) => {
+      if (res.confirm) {
+        const longitude = mapCenter.longitude;
+        const latitude = mapCenter.latitude;
+        
+        console.log('使用地图中心点坐标:', longitude, latitude);
+        
+        switch (currentTool.value) {
+          case 'point':
+            createPoint(longitude, latitude);
+            break;
+          case 'line':
+            handleLineCreation(longitude, latitude);
+            break;
+          case 'virtual':
+            createVirtualLine(longitude, latitude);
+            break;
+          case 'measure':
+            handleMeasure(longitude, latitude);
+            break;
+          case 'insert':
+            insertPoint(longitude, latitude);
+            break;
+          default:
+            break;
+        }
+      }
+    }
+  });
+}
+
+// 获取工具名称
+const getToolName = (tool) => {
+  const toolNames = {
+    point: '管点',
+    line: '管线',
+    virtual: '虚拟线',
+    shared: '共管',
+    insert: '插入点',
+    collect: '收点',
+    edit: '编辑',
+    measure: '测量',
+    flow: '流向',
+    move: '移动',
+    delete: '删除'
+  };
+  return toolNames[tool] || '元素';
+}
+
+// 在地图中心创建元素
+const createAtCenter = () => {
+  const longitude = mapCenter.longitude;
+  const latitude = mapCenter.latitude;
+  
+  console.log('在地图中心创建:', longitude, latitude);
+  
+  switch (currentTool.value) {
+    case 'point':
+      createPoint(longitude, latitude);
+      break;
+    case 'line':
+      handleLineCreation(longitude, latitude);
+      break;
+    case 'virtual':
+      createVirtualLine(longitude, latitude);
+      break;
+    case 'measure':
+      handleMeasure(longitude, latitude);
+      break;
+    case 'insert':
+      insertPoint(longitude, latitude);
+      break;
+    default:
+      break;
+  }
+}
+
+// 添加其他事件处理
+const onCalloutTap = (e) => {
+  console.log('callout点击:', e);
+}
+
+const onControlTap = (e) => {
+  console.log('control点击:', e);
 }
 
 // 打点
@@ -689,12 +772,57 @@ onMounted(() => {
   // 初始化数据
   console.log('采集页面初始化完成')
 
+  // 检查网络状态
+  checkNetworkStatus()
+  
   // 检查定位权限并获取当前位置
   checkLocationPermission()
 })
 
+// 检查网络状态
+const checkNetworkStatus = () => {
+  uni.getNetworkType({
+    success: (res) => {
+      console.log('网络类型:', res.networkType);
+      if (res.networkType === 'none') {
+        uni.showToast({
+          title: '网络连接异常，请检查网络设置',
+          icon: 'none',
+          duration: 3000
+        });
+      }
+    }
+  });
+}
+
 // 检查定位权限
 const checkLocationPermission = () => {
+  // #ifdef APP-PLUS
+  // App端权限检查
+  const locationPermission = plus.android ? 'android.permission.ACCESS_FINE_LOCATION' : 'NSLocationWhenInUseUsageDescription';
+  
+  plus.android && plus.android.requestPermissions(
+    ['android.permission.ACCESS_FINE_LOCATION', 'android.permission.ACCESS_COARSE_LOCATION'],
+    (result) => {
+      console.log('权限申请结果:', result);
+      getCurrentLocation();
+    },
+    (error) => {
+      console.log('权限申请失败:', error);
+      uni.showToast({
+        title: '需要定位权限才能使用地图功能',
+        icon: 'none'
+      });
+    }
+  );
+  // #endif
+  
+  // #ifdef H5
+  // H5环境直接尝试获取位置
+  getCurrentLocation();
+  // #endif
+  
+  // #ifdef MP-WEIXIN
   uni.getSetting({
     success: (res) => {
       if (res.authSetting['scope.userLocation'] !== undefined && res.authSetting['scope.userLocation'] !== true) {
@@ -720,6 +848,7 @@ const checkLocationPermission = () => {
       }
     }
   })
+  // #endif
 }
 </script>
 
