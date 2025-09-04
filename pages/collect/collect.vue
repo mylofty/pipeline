@@ -43,7 +43,7 @@
         :enable-satellite="mapType === 'satellite'">
         <!-- 定位按钮 -->
         <cover-view class="location-btn" @tap="getCurrentLocation">
-          <cover-image src="/static/icons/location.svg" class="location-icon"></cover-image>
+          <cover-text class="location-text">定位</cover-text>
         </cover-view>
 
         <!-- 地图中心十字准星 -->
@@ -795,6 +795,26 @@ const onMapError = (e) => {
 
 // 生命周期
 onMounted(() => {
+  // 设置状态栏样式
+  // #ifdef APP-PLUS
+  // App端设置状态栏背景色和文字颜色
+  plus.navigator.setStatusBarBackground('#2196F3')
+  plus.navigator.setStatusBarStyle('light')
+  // #endif
+  
+  // #ifdef MP-WEIXIN
+  // 微信小程序设置状态栏
+  wx.setNavigationBarColor({
+    frontColor: '#ffffff',
+    backgroundColor: '#2196F3'
+  })
+  // #endif
+  
+  // #ifdef H5
+  // H5端通过CSS设置
+  document.querySelector('meta[name="theme-color"]')?.setAttribute('content', '#2196F3')
+  // #endif
+  
   // 初始化数据
   console.log('采集页面初始化完成')
 

@@ -1,3 +1,5 @@
 unpackage/cache/
 unpackage/release/
 unpackage/dist/build/
+unpackage/dist/dev/
+unpackage/dist/dev/.nvue/
