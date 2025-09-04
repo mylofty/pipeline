@@ -18,9 +18,9 @@
 	}
 </script>
 
-<style>
+<style lang="scss">
 	/*每个页面公共css */
-	@import url("./uni.scss");
+	@import "./uni.scss";
 	
 	/* 自定义tabBar样式 */
 	.uni-tabbar {
