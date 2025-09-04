@@ -243,7 +243,7 @@ export default {
 		color: white;
 		border: none;
 		border-radius: 25rpx;
-		padding: 15rpx 30rpx;
+		// padding: 15rpx 30rpx;
 		font-size: 28rpx;
 	}
 }
