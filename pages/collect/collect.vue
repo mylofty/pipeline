@@ -383,7 +383,7 @@ const selectTool = (tool) => {
 
 //创建工具
 const onMapTap = (e) => {
-  console.log('地图点击事件完整对象:', JSON.stringify(e, null, 2));
+  // console.log('地图点击事件完整对象:', JSON.stringify(e, null, 2));
   
   // H5环境下uni-app的map组件可能无法直接获取点击坐标
   // 作为临时解决方案，使用地图中心点坐标
@@ -493,7 +493,7 @@ const createPoint = (longitude, latitude) => {
   showPointModal.value = true
 }
 
-// 连线（管线工具）
+// 管线工具
 const handleLineCreation = (longitude, latitude) => {
   tempPoints.value.push({ longitude, latitude })
 
@@ -513,7 +513,20 @@ const handleLineCreation = (longitude, latitude) => {
       tempPoints.value[1].latitude,
       tempPoints.value[1].longitude
     )
-    lineForm.length = distance.toFixed(2)
+    console.log('长度计算结果:', distance,tempPoints.value[0].latitude,
+      tempPoints.value[0].longitude,tempPoints.value[1].latitude,
+      tempPoints.value[1].longitude);
+    
+    if (distance > 0) {
+      lineForm.length = distance.toFixed(2)
+    } else {
+      uni.showToast({
+        title: '管线长度不能为0，请重新选择点',
+        icon: 'none'
+      })
+      tempPoints.value = []
+      return
+    }
 
     showLineModal.value = true
     tempPoints.value = []
