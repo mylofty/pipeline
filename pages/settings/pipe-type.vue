@@ -4,7 +4,7 @@
 			<text class="title">管类设置</text>
 			<button class="add-btn" @click="showAddDialog">+ 新增</button>
 		</view>
-		
+
 		<!-- 管点类型 -->
 		<view class="type-section">
 			<text class="section-title">管点类型</text>
@@ -21,7 +21,7 @@
 				</view>
 			</view>
 		</view>
-		
+
 		<!-- 管线类型 -->
 		<view class="type-section">
 			<text class="section-title">管线类型</text>
@@ -38,22 +38,23 @@
 				</view>
 			</view>
 		</view>
-		
+
 		<!-- 添加/编辑弹窗 -->
 		<uni-popup ref="typePopup" type="center">
 			<view class="popup-content">
-				<text class="popup-title">{{ editingType ? '编辑' : '新增' }}{{ currentCategory === 'point' ? '管点' : '管线' }}类型</text>
-				
+				<text class="popup-title">{{ editingType ? '编辑' : '新增' }}{{ currentCategory === 'point' ? '管点' : '管线'
+				}}类型</text>
+
 				<view class="form-item">
 					<text class="form-label">类型名称</text>
 					<input class="form-input" v-model="formData.name" placeholder="请输入类型名称" />
 				</view>
-				
+
 				<view class="form-item">
 					<text class="form-label">描述</text>
 					<textarea class="form-textarea" v-model="formData.description" placeholder="请输入描述信息" />
 				</view>
-				
+
 				<view class="popup-actions">
 					<button class="btn-cancel" @click="closePopup">取消</button>
 					<button class="btn-confirm" @click="saveType">保存</button>
@@ -94,7 +95,7 @@ export default {
 		loadTypes() {
 			const savedPointTypes = uni.getStorageSync('pointTypes')
 			const savedLineTypes = uni.getStorageSync('lineTypes')
-			
+
 			if (savedPointTypes) {
 				this.pointTypes = savedPointTypes
 			}
@@ -102,12 +103,12 @@ export default {
 				this.lineTypes = savedLineTypes
 			}
 		},
-		
+
 		saveTypes() {
 			uni.setStorageSync('pointTypes', this.pointTypes)
 			uni.setStorageSync('lineTypes', this.lineTypes)
 		},
-		
+
 		showAddDialog() {
 			uni.showActionSheet({
 				itemList: ['管点类型', '管线类型'],
@@ -120,21 +121,27 @@ export default {
 				}
 			})
 		},
-		
+		// 编辑指定分类（点或线）中的类型数据
 		editType(category, index) {
 			this.currentCategory = category
 			this.editingIndex = index
-			
+
 			const types = category === 'point' ? this.pointTypes : this.lineTypes
 			this.editingType = types[index]
 			this.formData = { ...this.editingType }
-			
-			this.$refs.typePopup.open()
+
+			this.$nextTick(() => {
+				if (this.$refs.typePopup && this.$refs.typePopup.open) {
+					this.$refs.typePopup.open()
+				} else {
+					console.error('Popup reference not found or open method not available')
+				}
+			})
 		},
-		
+
 		deleteType(category, index) {
 			const typeName = category === 'point' ? this.pointTypes[index].name : this.lineTypes[index].name
-			
+
 			uni.showModal({
 				title: '确认删除',
 				content: `确定要删除类型"${typeName}"吗？`,
@@ -145,7 +152,7 @@ export default {
 						} else {
 							this.lineTypes.splice(index, 1)
 						}
-						
+
 						this.saveTypes()
 						uni.showToast({
 							title: '删除成功',
@@ -155,7 +162,7 @@ export default {
 				}
 			})
 		},
-		
+
 		saveType() {
 			if (!this.formData.name.trim()) {
 				uni.showToast({
@@ -164,9 +171,9 @@ export default {
 				})
 				return
 			}
-			
+
 			const types = this.currentCategory === 'point' ? this.pointTypes : this.lineTypes
-			
+
 			if (this.editingType) {
 				// 编辑模式
 				types[this.editingIndex] = { ...this.formData }
@@ -174,16 +181,16 @@ export default {
 				// 新增模式
 				types.push({ ...this.formData })
 			}
-			
+
 			this.saveTypes()
 			this.closePopup()
-			
+
 			uni.showToast({
 				title: this.editingType ? '修改成功' : '添加成功',
 				icon: 'success'
 			})
 		},
-		
+		// 关闭弹窗并重置表单数据
 		closePopup() {
 			this.$refs.typePopup.close()
 			this.formData = { name: '', description: '' }
@@ -206,13 +213,13 @@ export default {
 	justify-content: space-between;
 	align-items: center;
 	margin-bottom: 30rpx;
-	
+
 	.title {
 		font-size: 36rpx;
 		font-weight: bold;
 		color: #333;
 	}
-	
+
 	.add-btn {
 		background: #007AFF;
 		color: white;
@@ -225,7 +232,7 @@ export default {
 
 .type-section {
 	margin-bottom: 40rpx;
-	
+
 	.section-title {
 		display: block;
 		font-size: 30rpx;
@@ -233,53 +240,54 @@ export default {
 		color: #333;
 		margin-bottom: 20rpx;
 	}
-	
+
 	.type-list {
 		background: white;
 		border-radius: 15rpx;
 		overflow: hidden;
-		
+
 		.type-item {
 			display: flex;
 			align-items: center;
 			padding: 30rpx;
 			border-bottom: 1rpx solid #f0f0f0;
-			
+
 			&:last-child {
 				border-bottom: none;
 			}
-			
+
 			.type-info {
 				flex: 1;
-				
+
 				.type-name {
 					display: block;
 					font-size: 30rpx;
 					color: #333;
 					margin-bottom: 8rpx;
 				}
-				
+
 				.type-desc {
 					font-size: 24rpx;
 					color: #999;
 				}
 			}
-			
+
 			.type-actions {
 				display: flex;
 				gap: 20rpx;
-				
-				.edit-btn, .delete-btn {
+
+				.edit-btn,
+				.delete-btn {
 					padding: 10rpx 20rpx;
 					border-radius: 15rpx;
 					font-size: 24rpx;
 				}
-				
+
 				.edit-btn {
 					background: #f0f0f0;
 					color: #666;
 				}
-				
+
 				.delete-btn {
 					background: #ffe6e6;
 					color: #ff4444;
@@ -294,7 +302,7 @@ export default {
 	border-radius: 20rpx;
 	padding: 40rpx;
 	width: 600rpx;
-	
+
 	.popup-title {
 		display: block;
 		font-size: 32rpx;
@@ -303,49 +311,51 @@ export default {
 		text-align: center;
 		margin-bottom: 40rpx;
 	}
-	
+
 	.form-item {
 		margin-bottom: 30rpx;
-		
+
 		.form-label {
 			display: block;
 			font-size: 28rpx;
 			color: #333;
 			margin-bottom: 15rpx;
 		}
-		
-		.form-input, .form-textarea {
+
+		.form-input,
+		.form-textarea {
 			width: 100%;
 			border: 2rpx solid #e5e5e5;
 			border-radius: 10rpx;
 			padding: 20rpx;
 			font-size: 28rpx;
 		}
-		
+
 		.form-textarea {
 			height: 120rpx;
 			resize: none;
 		}
 	}
-	
+
 	.popup-actions {
 		display: flex;
 		gap: 20rpx;
 		margin-top: 40rpx;
-		
-		.btn-cancel, .btn-confirm {
+
+		.btn-cancel,
+		.btn-confirm {
 			flex: 1;
 			height: 70rpx;
 			border-radius: 35rpx;
 			font-size: 28rpx;
 			border: none;
 		}
-		
+
 		.btn-cancel {
 			background: #f0f0f0;
 			color: #666;
 		}
-		
+
 		.btn-confirm {
 			background: #007AFF;
 			color: white;
