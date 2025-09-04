@@ -37,21 +37,21 @@
     <!-- 地图容器 -->
     <view class="map-wrapper">
       <map id="amap" class="amap" :longitude="mapCenter.longitude" :latitude="mapCenter.latitude" :scale="mapScale"
-        :markers="markers" :polyline="polylines" :polygons="polygons" @tap="onMapTap" @click="onMapTap" @markertap="onMarkerTap"
-        @regionchange="onRegionChange" @error="onMapError" @callouttap="onCalloutTap" @controltap="onControlTap"
-        show-location enable-3D enable-overlooking enable-zoom enable-scroll enable-rotate 
+        :markers="markers" :polyline="polylines" :polygons="polygons" @tap="onMapTap" @click="onMapTap"
+        @markertap="onMarkerTap" @regionchange="onRegionChange" @error="onMapError" @callouttap="onCalloutTap"
+        @controltap="onControlTap" show-location enable-3D enable-overlooking enable-zoom enable-scroll enable-rotate
         :enable-satellite="mapType === 'satellite'">
         <!-- 定位按钮 -->
         <cover-view class="location-btn" @tap="getCurrentLocation">
           <cover-image src="/static/icons/location.svg" class="location-icon"></cover-image>
         </cover-view>
-        
+
         <!-- 地图中心十字准星 -->
         <cover-view class="map-crosshair" v-if="currentTool">
           <cover-view class="crosshair-horizontal"></cover-view>
           <cover-view class="crosshair-vertical"></cover-view>
         </cover-view>
-        
+
         <!-- 创建按钮 -->
         <cover-view class="create-btn" v-if="currentTool" @tap="createAtCenter">
           <cover-text class="create-text">在此创建{{ getToolName(currentTool) }}</cover-text>
@@ -383,8 +383,8 @@ const selectTool = (tool) => {
 
 //创建工具
 const onMapTap = (e) => {
-  console.log('地图点击事件完整对象:', JSON.stringify(e, null, 2));
-  
+  // console.log('地图点击事件完整对象:', JSON.stringify(e, null, 2));
+
   // H5环境下uni-app的map组件可能无法直接获取点击坐标
   // 作为临时解决方案，使用地图中心点坐标
   if (!currentTool.value) {
@@ -394,7 +394,7 @@ const onMapTap = (e) => {
     });
     return;
   }
-  
+
   // 提示用户使用地图中心点
   uni.showModal({
     title: '创建确认',
@@ -403,9 +403,9 @@ const onMapTap = (e) => {
       if (res.confirm) {
         const longitude = mapCenter.longitude;
         const latitude = mapCenter.latitude;
-        
+
         console.log('使用地图中心点坐标:', longitude, latitude);
-        
+
         switch (currentTool.value) {
           case 'point':
             createPoint(longitude, latitude);
@@ -452,9 +452,9 @@ const getToolName = (tool) => {
 const createAtCenter = () => {
   const longitude = mapCenter.longitude;
   const latitude = mapCenter.latitude;
-  
+
   console.log('在地图中心创建:', longitude, latitude);
-  
+
   switch (currentTool.value) {
     case 'point':
       createPoint(longitude, latitude);
@@ -481,6 +481,7 @@ const onCalloutTap = (e) => {
   console.log('callout点击:', e);
 }
 
+// 监听地图控件的点击事件​​
 const onControlTap = (e) => {
   console.log('control点击:', e);
 }
@@ -493,7 +494,7 @@ const createPoint = (longitude, latitude) => {
   showPointModal.value = true
 }
 
-// 连线（管线工具）
+// 管线工具
 const handleLineCreation = (longitude, latitude) => {
   tempPoints.value.push({ longitude, latitude })
 
@@ -513,7 +514,20 @@ const handleLineCreation = (longitude, latitude) => {
       tempPoints.value[1].latitude,
       tempPoints.value[1].longitude
     )
-    lineForm.length = distance.toFixed(2)
+    console.log('长度计算结果:', distance, tempPoints.value[0].latitude,
+      tempPoints.value[0].longitude, tempPoints.value[1].latitude,
+      tempPoints.value[1].longitude);
+
+    if (distance > 0) {
+      lineForm.length = distance.toFixed(2)
+    } else {
+      uni.showToast({
+        title: '管线长度不能为0，请重新选择点',
+        icon: 'none'
+      })
+      tempPoints.value = []
+      return
+    }
 
     showLineModal.value = true
     tempPoints.value = []
@@ -570,6 +584,7 @@ const insertPoint = (longitude, latitude) => {
   })
 }
 
+// 计算地球上两点之间的大圆距离（两点之间的最短距离）
 const calculateDistance = (lat1, lon1, lat2, lon2) => {
   const R = 6371000 // 地球半径（米）
   const dLat = (lat2 - lat1) * Math.PI / 180
@@ -603,8 +618,9 @@ const getCurrentLocation = () => {
   })
 }
 
+// 实现地图交互功能
 const onMarkerTap = (e) => {
-console.log('onMarkerTap',e);
+  console.log('onMarkerTap', e);
 
   const markerId = e.detail.markerId
   const marker = markers.value.find(m => m.id === markerId)
@@ -634,7 +650,9 @@ console.log('onMarkerTap',e);
   }
 }
 
+// 监听地图的移动、缩放等操作​​
 const onRegionChange = (e) => {
+  // 仅在变化结束时（e.type === 'end'）更新中心点坐标​
   if (e.type === 'end') {
     mapCenter.longitude = e.detail.centerLocation.longitude
     mapCenter.latitude = e.detail.centerLocation.latitude
@@ -655,6 +673,7 @@ const closePointModal = () => {
   })
 }
 
+// 管线取消按钮
 const closeLineModal = () => {
   showLineModal.value = false
   Object.assign(lineForm, {
@@ -709,23 +728,21 @@ const saveLine = () => {
     })
     return
   }
-
   const newLine = {
     points: [lineForm.startPoint, lineForm.endPoint],
     color: getLineColor(lineForm.type),
     width: 4,
     data: { ...lineForm }
   }
-
   polylines.value.push(newLine)
   closeLineModal()
-
   uni.showToast({
     title: '管线创建成功',
     icon: 'success'
   })
 }
 
+// 管线颜色选择
 const getLineColor = (type) => {
   const colors = {
     '主管': '#2196F3',
@@ -737,26 +754,31 @@ const getLineColor = (type) => {
   return colors[type] || '#2196F3'
 }
 
+// 管点材质选择
 const onMaterialChange = (e) => {
   materialIndex.value = e.detail.value
   pointForm.material = materialOptions.value[e.detail.value]
 }
 
+// 管线类型
 const onLineTypeChange = (e) => {
   lineTypeIndex.value = e.detail.value
   lineForm.type = lineTypeOptions.value[e.detail.value]
 }
 
+// 管线材质选择
 const onLineMaterialChange = (e) => {
   lineMaterialIndex.value = e.detail.value
   lineForm.material = materialOptions.value[e.detail.value]
 }
 
+// 清除测量结果
 const clearMeasure = () => {
   measurePoints.value = []
   measureResult.show = false
 }
 
+//关闭测量结果
 const closeMeasureResult = () => {
   measureResult.show = false
 }
@@ -778,7 +800,7 @@ onMounted(() => {
 
   // 检查网络状态
   checkNetworkStatus()
-  
+
   // 检查定位权限并获取当前位置
   checkLocationPermission()
 })
@@ -804,7 +826,7 @@ const checkLocationPermission = () => {
   // #ifdef APP-PLUS
   // App端权限检查
   const locationPermission = plus.android ? 'android.permission.ACCESS_FINE_LOCATION' : 'NSLocationWhenInUseUsageDescription';
-  
+
   plus.android && plus.android.requestPermissions(
     ['android.permission.ACCESS_FINE_LOCATION', 'android.permission.ACCESS_COARSE_LOCATION'],
     (result) => {
@@ -820,12 +842,12 @@ const checkLocationPermission = () => {
     }
   );
   // #endif
-  
+
   // #ifdef H5
   // H5环境直接尝试获取位置
   getCurrentLocation();
   // #endif
-  
+
   // #ifdef MP-WEIXIN
   uni.getSetting({
     success: (res) => {
