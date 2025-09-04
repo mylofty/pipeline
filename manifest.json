@@ -19,7 +19,15 @@
             "Maps" : {}
         },
         "distribute" : {
-            "sdkConfigs" : {},
+            "sdkConfigs" : {
+                "maps" : {
+                    "amap" : {
+                        "name" : "amapAODQpgCDq",
+                        "appkey_ios" : "",
+                        "appkey_android" : "5c1251eefc1a910588e0eb96a7d91a99"
+                    }
+                }
+            },
             "android" : {
                 "permissions" : [
                     "<uses-permission android:name=\"android.permission.CHANGE_NETWORK_STATE\"/>",

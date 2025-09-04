@@ -31,3 +31,8 @@
 ## 开发说明
 项目采用Vue3语法开发，支持Android和iOS平台。
 需要配置地图API密钥和相关权限。
+
+
+## 地图
+[离线地图加载分享](https://www.jianshu.com/p/b20f5d15b688)
+[uniapp offline gitee](https://gitee.com/kalisong/uniapp-offline-map/tree/master)
