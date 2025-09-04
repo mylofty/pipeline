@@ -225,7 +225,7 @@ export default {
 		color: white;
 		border: none;
 		border-radius: 25rpx;
-		padding: 15rpx 30rpx;
+		// padding: 10rpx 20rpx;
 		font-size: 28rpx;
 	}
 }
