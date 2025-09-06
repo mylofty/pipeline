@@ -1,0 +1,1712 @@
+<template>
+  <div class="collect-container" @click="closeDropdown">
+    <!-- 顶部工具栏 -->
+    <div class="top-toolbar">
+      <!-- 图层管理下拉框 -->
+      <div class="layer-selector">
+        <div class="picker-display" @click.stop="toggleDropdown">
+          <text>{{ getDisplayText() }}</text>
+          <text class="arrow" :class="{ 'arrow-up': showDropdown }">▼</text>
+        </div>
+        <div class="dropdown" v-if="showDropdown" @click.stop>
+          <div class="dropdown-item select-all-item" @click="selectAll">
+            <text>全选</text>
+          </div>
+          <div class="dropdown-item select-all-item" @click="selectNone">
+            <text>全不选</text>
+          </div>
+          <div class="dropdown-divider"></div>
+          <div class="dropdown-item" v-for="(item, index) in layerOptions" :key="index" @click="selectLayer(index)">
+            <div class="checkbox-wrapper">
+              <text class="checkbox" :class="{ checked: selectedLayers.includes(index) }">{{
+                selectedLayers.includes(index) ? '✓' : '' }}</text>
+              <text class="layer-name">{{ item }}</text>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 探点号搜索框 -->
+      <div class="search-container">
+        <input type="text" placeholder="搜索管点物探点号..." v-model="searchPointNo" @input="onSearchInput"
+          class="search-input" confirm-type="search" @click.stop />
+        <div class="search-btn" @click="searchPoint">
+          <text>🔍</text>
+        </div>
+      </div>
+    </div>
+
+    <!-- 地图容器 -->
+    <div class="map-wrapper">
+      <map id="amap" class="amap" :longitude="mapCenter.longitude" :latitude="mapCenter.latitude" :scale="mapScale"
+        :markers="markers" :polyline="polylines" :polygons="polygons" @tap="onMapTap" @click="onMapTap"
+        @markertap="onMarkerTap" @regionchange="onRegionChange" @error="onMapError" @callouttap="onCalloutTap"
+        @controltap="onControlTap" show-location enable-3D enable-overlooking enable-zoom enable-scroll enable-rotate
+        :enable-satellite="mapType === 'satellite'">
+      </map>
+
+      <!-- 定位按钮 -->
+      <div class="location-btn" @tap="getCurrentLocation">
+        <text class="location-text">定位</text>
+      </div>
+
+      <!-- 地图中心十字准星 -->
+      <div class="map-crosshair" v-if="currentTool">
+        <div class="crosshair-horizontal"></div>
+        <div class="crosshair-vertical"></div>
+      </div>
+
+      <!-- 创建按钮 -->
+      <div class="create-btn" v-if="currentTool" @tap="createAtCenter">
+        <text class="create-text">在此创建{{ getToolName(currentTool) }}</text>
+      </div>
+
+      <!-- 右侧工具栏 -->
+      <div class="right-toolbar">
+        <!-- 影像/矢量切换 -->
+        <div class="tool-section">
+          <div 
+            class="tool-btn map-type-btn" 
+            :class="{ active: mapType === 'satellite' }"
+            @click="toggleMapType"
+          >
+            <div class="tool-icon">
+              <text>🛰️</text>
+            </div>
+            <div class="tool-text">
+              <text>{{ mapType === 'satellite' ? '影像' : '矢量' }}</text>
+            </div>
+          </div>
+        </div>
+
+        <!-- 创建工具集 -->
+        <div class="tool-section">
+          <div class="section-title">
+            <text>创建工具</text>
+          </div>
+          <div 
+            class="tool-btn" 
+            :class="{ active: currentTool === 'point' }"
+            @click="selectTool('point')"
+          >
+            <div class="tool-icon">
+              <text>📍</text>
+            </div>
+            <div class="tool-text">
+              <text>管点</text>
+            </div>
+          </div>
+          <div 
+            class="tool-btn" 
+            :class="{ active: currentTool === 'line' }"
+            @click="selectTool('line')"
+          >
+            <div class="tool-icon">
+              <text>📏</text>
+            </div>
+            <div class="tool-text">
+              <text>管线</text>
+            </div>
+          </div>
+          <div 
+            class="tool-btn" 
+            :class="{ active: currentTool === 'virtual' }"
+            @click="selectTool('virtual')"
+          >
+            <div class="tool-icon">
+              <text>⚡</text>
+            </div>
+            <div class="tool-text">
+              <text>虚拟线</text>
+            </div>
+          </div>
+          <div 
+            class="tool-btn" 
+            :class="{ active: currentTool === 'shared' }"
+            @click="selectTool('shared')"
+          >
+            <div class="tool-icon">
+              <text>🔗</text>
+            </div>
+            <div class="tool-text">
+              <text>共管</text>
+            </div>
+          </div>
+          <div 
+            class="tool-btn" 
+            :class="{ active: currentTool === 'insert' }"
+            @click="selectTool('insert')"
+          >
+            <div class="tool-icon">
+              <text>➕</text>
+            </div>
+            <div class="tool-text">
+              <text>插入</text>
+            </div>
+          </div>
+          <div 
+            class="tool-btn" 
+            :class="{ active: currentTool === 'collect' }"
+            @click="selectTool('collect')"
+          >
+            <div class="tool-icon">
+              <text>✅</text>
+            </div>
+            <div class="tool-text">
+              <text>收点</text>
+            </div>
+          </div>
+        </div>
+
+        <!-- 编辑工具集 -->
+        <div class="tool-section">
+          <div class="section-title">
+            <text>编辑工具</text>
+          </div>
+          <div 
+            class="tool-btn" 
+            :class="{ active: currentTool === 'edit' }"
+            @click="selectTool('edit')"
+          >
+            <div class="tool-icon">
+              <text>✏️</text>
+            </div>
+            <div class="tool-text">
+              <text>编辑</text>
+            </div>
+          </div>
+          <div 
+            class="tool-btn" 
+            :class="{ active: currentTool === 'measure' }"
+            @click="selectTool('measure')"
+          >
+            <div class="tool-icon">
+              <text>📐</text>
+            </div>
+            <div class="tool-text">
+              <text>测量</text>
+            </div>
+          </div>
+          <div 
+            class="tool-btn" 
+            :class="{ active: currentTool === 'flow' }"
+            @click="selectTool('flow')"
+          >
+            <div class="tool-icon">
+              <text>🔄</text>
+            </div>
+            <div class="tool-text">
+              <text>流向</text>
+            </div>
+          </div>
+          <div 
+            class="tool-btn" 
+            :class="{ active: currentTool === 'move' }"
+            @click="selectTool('move')"
+          >
+            <div class="tool-icon">
+              <text>🔄</text>
+            </div>
+            <div class="tool-text">
+              <text>移动</text>
+            </div>
+          </div>
+          <div 
+            class="tool-btn" 
+            :class="{ active: currentTool === 'delete' }"
+            @click="selectTool('delete')"
+          >
+            <div class="tool-icon">
+              <text>🗑️</text>
+            </div>
+            <div class="tool-text">
+              <text>删除</text>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 管点信息弹窗 -->
+    <div class="pipe-point-modal" v-if="showPipePointModal" @click="closePipePointModal">
+      <div class="modal-content" @click.stop>
+        <div class="modal-header">
+          <text class="modal-title">管点信息</text>
+          <div class="close-btn" @click="closePipePointModal">
+            <text>×</text>
+          </div>
+        </div>
+        <div class="modal-body">
+          <div class="info-item">
+            <text class="label">管点编号：</text>
+            <div class="value-wrapper"><text class="value">{{ selectedPipePoint.id }}</text></div>
+          </div>
+          <div class="info-item">
+            <text class="label">管点类型：</text>
+            <div class="value-wrapper"><text class="value">{{ selectedPipePoint.type }}</text></div>
+          </div>
+          <div class="info-item">
+            <text class="label">管径：</text>
+            <div class="value-wrapper"><text class="value">{{ selectedPipePoint.diameter }}mm</text></div>
+          </div>
+          <div class="info-item">
+            <text class="label">材质：</text>
+            <div class="value-wrapper"><text class="value select">{{ selectedPipePoint.material }}</text></div>
+          </div>
+          <div class="info-item">
+            <text class="label">埋深：</text>
+            <div class="value-wrapper"><text class="value">{{ selectedPipePoint.depth }}m</text></div>
+          </div>
+          <div class="info-item">
+            <text class="label">状态：</text>
+            <div class="value-wrapper"><text class="value">{{ selectedPipePoint.status }}</text></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 管点属性弹窗 -->
+    <div class="point-modal" v-if="showPointModal" @click="closePointModal">
+      <div class="modal-content" @click.stop>
+        <div class="modal-header">
+          <text class="modal-title">管点属性</text>
+          <div class="close-btn" @click="closePointModal">
+            <text>×</text>
+          </div>
+        </div>
+        <div class="modal-body">
+          <div class="form-item">
+            <text class="label">点号：</text>
+            <input type="text" v-model="pointForm.pointNo" placeholder="请输入点号" class="form-input" />
+          </div>
+          <div class="form-item">
+            <text class="label">管径：</text>
+            <input type="number" v-model="pointForm.diameter" placeholder="请输入管径(mm)" class="form-input" />
+          </div>
+          <div class="form-item">
+            <text class="label">材质：</text>
+            <picker @change="onMaterialChange" :value="materialIndex" :range="materialOptions">
+              <div class="picker-display">
+                <text>{{ materialOptions[materialIndex] }}</text>
+              </div>
+            </picker>
+          </div>
+          <div class="form-item">
+            <text class="label">埋深：</text>
+            <input type="number" v-model="pointForm.depth" placeholder="请输入埋深(m)" class="form-input" />
+          </div>
+          <div class="form-item">
+            <text class="label">备注：</text>
+            <textarea v-model="pointForm.remark" placeholder="请输入备注信息" class="form-textarea"></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <div class="cancel-btn" @click="closePointModal">
+            <text>取消</text>
+          </div>
+          <div class="confirm-btn" @click="savePoint">
+            <text>确定</text>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 管线属性弹窗 -->
+    <div class="line-modal" v-if="showLineModal" @click="closeLineModal">
+      <div class="modal-content" @click.stop>
+        <div class="modal-header">
+          <text class="modal-title">管线属性</text>
+          <div class="close-btn" @click="closeLineModal">
+            <text>×</text>
+          </div>
+        </div>
+        <div class="modal-body">
+          <div class="form-item">
+            <text class="label">管线类型：</text>
+            <picker @change="onLineTypeChange" :value="lineTypeIndex" :range="lineTypeOptions">
+              <div class="picker-display">
+                <text>{{ lineTypeOptions[lineTypeIndex] }}</text>
+              </div>
+            </picker>
+          </div>
+          <div class="form-item">
+            <text class="label">管径：</text>
+            <input type="number" v-model="lineForm.diameter" placeholder="请输入管径(mm)" class="form-input" />
+          </div>
+          <div class="form-item">
+            <text class="label">材质：</text>
+            <picker @change="onLineMaterialChange" :value="lineMaterialIndex" :range="materialOptions">
+              <div class="picker-display">
+                <text>{{ materialOptions[lineMaterialIndex] }}</text>
+              </div>
+            </picker>
+          </div>
+          <div class="form-item">
+            <text class="label">长度：</text>
+            <input type="number" v-model="lineForm.length" placeholder="自动计算" disabled class="form-input" />
+          </div>
+          <div class="form-item">
+            <text class="label">备注：</text>
+            <textarea v-model="lineForm.remark" placeholder="请输入备注信息" class="form-textarea"></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <div class="cancel-btn" @click="closeLineModal">
+            <text>取消</text>
+          </div>
+          <div class="confirm-btn" @click="saveLine">
+            <text>确定</text>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 测量结果显示 -->
+    <div class="measure-result" v-if="measureResult.show">
+      <div class="result-content">
+        <text class="result-title">测量结果</text>
+        <text class="result-value">{{ measureResult.text }}</text>
+        <div class="result-actions">
+          <div class="clear-btn" @click="clearMeasure">
+            <text>清除</text>
+          </div>
+          <div class="close-btn" @click="closeMeasureResult">
+            <text>关闭</text>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script>
+import { ref, reactive, onMounted, computed } from 'vue'
+
+export default {
+  setup() {
+    // 响应式数据
+    const searchPointNo = ref('')
+    const currentTool = ref('')
+    const mapType = ref('vector') // vector 或 satellite
+    const mapScale = ref(16)
+    const currentLayerIndex = ref(0)
+    const showDropdown = ref(false)
+    const selectedLayers = ref([0]) // 默认选中第一个图层
+    const materialIndex = ref(0)
+    const lineTypeIndex = ref(0)
+    const lineMaterialIndex = ref(0)
+
+    // 图层选项
+    const layerOptions = ref([
+      '给水管网',
+      '排水管网',
+      '燃气管网',
+      '热力管网',
+      '电力管网',
+      '通信管网'
+    ])
+
+    // 材质选项
+    const materialOptions = ref([
+      'PE',
+      'PVC',
+      '铸铁',
+      '钢管',
+      '水泥管',
+      '其他'
+    ])
+
+    // 管线类型选项
+    const lineTypeOptions = ref([
+      '主管',
+      '支管',
+      '接户管',
+      '阀门',
+      '其他'
+    ])
+
+    // 地图中心点
+    const mapCenter = reactive({
+      longitude: 116.397428,
+      latitude: 39.90923
+    })
+
+    // 弹窗显示状态
+    const showPointModal = ref(false)
+    const showLineModal = ref(false)
+    const showPipePointModal = ref(false)
+
+    // 管点表单数据
+    const pointForm = reactive({
+      pointNo: '',
+      diameter: '',
+      material: '',
+      depth: '',
+      remark: '',
+      longitude: 0,
+      latitude: 0
+    })
+
+    // 管线表单数据
+    const lineForm = reactive({
+      type: '',
+      diameter: '',
+      material: '',
+      length: '',
+      remark: '',
+      startPoint: null,
+      endPoint: null
+    })
+
+    // 测量结果
+    const measureResult = reactive({
+      show: false,
+      text: '',
+      type: '' // distance 或 area
+    })
+
+    // 选中的管点信息
+    const selectedPipePoint = reactive({
+      id: '',
+      type: '',
+      diameter: '',
+      material: '',
+      depth: '',
+      status: ''
+    })
+
+    // 地图数据
+    const markers = ref([])
+    const polylines = ref([])
+    const polygons = ref([])
+
+    // 临时数据
+    const tempPoints = ref([]) // 用于连线时的临时点
+    const measurePoints = ref([]) // 测量时的点
+
+    // 方法实现
+    const toggleDropdown = () => {
+      showDropdown.value = !showDropdown.value
+    }
+
+    const selectLayer = (index) => {
+      if (selectedLayers.value.includes(index)) {
+        selectedLayers.value = selectedLayers.value.filter(i => i !== index)
+      } else {
+        selectedLayers.value.push(index)
+      }
+
+      // 更新当前显示的图层
+      if (selectedLayers.value.length > 0) {
+        currentLayerIndex.value = selectedLayers.value[0]
+      }
+
+      updateLayerDisplay()
+    }
+
+    const selectAll = () => {
+      selectedLayers.value = layerOptions.value.map((_, index) => index)
+      currentLayerIndex.value = 0
+      updateLayerDisplay()
+      uni.showToast({
+        title: '已全选所有图层',
+        icon: 'none'
+      })
+    }
+
+    const selectNone = () => {
+      selectedLayers.value = []
+      updateLayerDisplay()
+      uni.showToast({
+        title: '已取消选择所有图层',
+        icon: 'none'
+      })
+    }
+
+    const updateLayerDisplay = () => {
+      if (selectedLayers.value.length === 0) {
+        // 没有选中任何图层时的处理
+      } else if (selectedLayers.value.length === 1) {
+        currentLayerIndex.value = selectedLayers.value[0]
+      } else {
+        // 多选时显示数量
+        currentLayerIndex.value = selectedLayers.value[0]
+      }
+    }
+
+    const getDisplayText = () => {
+      if (selectedLayers.value.length === 0) {
+        return '请选择图层'
+      } else if (selectedLayers.value.length === 1) {
+        return layerOptions.value[selectedLayers.value[0]]
+      } else if (selectedLayers.value.length === layerOptions.value.length) {
+        return '全部图层'
+      } else {
+        return `已选择${selectedLayers.value.length}个图层`
+      }
+    }
+
+    const closeDropdown = () => {
+      showDropdown.value = false
+    }
+
+    const onSearchInput = (e) => {
+      searchPointNo.value = e.detail.value
+    }
+
+    const searchPoint = () => {
+      console.log('搜索触发，当前输入值:', searchPointNo.value)
+      
+      if (!searchPointNo.value || !searchPointNo.value.trim()) {
+        uni.showToast({
+          title: '请输入探点号',
+          icon: 'none'
+        })
+        return
+      }
+
+      // 搜索逻辑
+      const foundMarker = markers.value.find(marker =>
+        marker.title && marker.title.includes(searchPointNo.value.trim())
+      )
+
+      if (foundMarker) {
+        mapCenter.longitude = foundMarker.longitude
+        mapCenter.latitude = foundMarker.latitude
+        mapScale.value = 18
+        uni.showToast({
+          title: '已定位到目标点',
+          icon: 'success'
+        })
+      } else {
+        uni.showToast({
+          title: '未找到该探点号',
+          icon: 'none'
+        })
+      }
+    }
+
+    const toggleMapType = () => {
+      mapType.value = mapType.value === 'vector' ? 'satellite' : 'vector'
+      uni.showToast({
+        title: `已切换到${mapType.value === 'satellite' ? '影像' : '矢量'}地图`,
+        icon: 'none'
+      })
+    }
+
+    const selectTool = (tool) => {
+      currentTool.value = currentTool.value === tool ? '' : tool
+
+      // 清除临时数据
+      tempPoints.value = []
+      measurePoints.value = []
+
+      const toolNames = {
+        point: '管点工具',
+        line: '管线工具',
+        virtual: '虚拟线工具',
+        shared: '共管工具',
+        insert: '插入工具',
+        collect: '收点工具',
+        edit: '编辑工具',
+        measure: '测量工具',
+        flow: '流向工具',
+        move: '移动工具',
+        delete: '删除工具'
+      }
+
+      if (currentTool.value) {
+        uni.showToast({
+          title: `已选择${toolNames[tool]}`,
+          icon: 'none'
+        })
+      }
+    }
+
+    //创建工具
+    const onMapTap = (e) => {
+      console.log('onMapTap', e);
+      
+      if (!currentTool.value) {
+        uni.showToast({
+          title: '请先选择创建工具',
+          icon: 'none'
+        });
+        return;
+      }
+
+      // 获取点击位置的坐标
+      let clickLongitude, clickLatitude;
+      
+      if (e.detail && e.detail.longitude !== undefined && e.detail.latitude !== undefined) {
+        // 从事件详情中获取点击坐标
+        clickLongitude = e.detail.longitude;
+        clickLatitude = e.detail.latitude;
+        console.log('获取到点击坐标:', clickLongitude, clickLatitude);
+      } else {
+        // 如果无法获取点击坐标，使用地图中心点作为备选
+        clickLongitude = mapCenter.longitude;
+        clickLatitude = mapCenter.latitude;
+        console.log('使用地图中心点坐标作为备选:', clickLongitude, clickLatitude);
+      }
+
+      // 提示用户确认创建位置
+      uni.showModal({
+        title: '创建确认',
+        content: `将在点击位置创建${getToolName(currentTool.value)}，是否继续？`,
+        success: (res) => {
+          if (res.confirm) {
+            console.log('使用坐标:', clickLongitude, clickLatitude);
+
+            switch (currentTool.value) {
+              case 'point':
+                createPoint(clickLongitude, clickLatitude);
+                break;
+              case 'line':
+                handleLineCreation(clickLongitude, clickLatitude);
+                break;
+              case 'virtual':
+                createVirtualLine(clickLongitude, clickLatitude);
+                break;
+              case 'measure':
+                handleMeasure(clickLongitude, clickLatitude);
+                break;
+              case 'insert':
+                insertPoint(clickLongitude, clickLatitude);
+                break;
+              default:
+                break;
+            }
+          }
+        }
+      });
+    }
+
+    // 获取工具名称
+    const getToolName = (tool) => {
+      const toolNames = {
+        point: '管点',
+        line: '管线',
+        virtual: '虚拟线',
+        shared: '共管',
+        insert: '插入点',
+        collect: '收点',
+        edit: '编辑',
+        measure: '测量',
+        flow: '流向',
+        move: '移动',
+        delete: '删除'
+      };
+      return toolNames[tool] || '元素';
+    }
+
+    // 在地图中心创建元素
+    const createAtCenter = () => {
+      const longitude = mapCenter.longitude;
+      const latitude = mapCenter.latitude;
+
+      console.log('在地图中心创建:', longitude, latitude);
+
+      switch (currentTool.value) {
+        case 'point':
+          createPoint(longitude, latitude);
+          break;
+        case 'line':
+          handleLineCreation(longitude, latitude);
+          break;
+        case 'virtual':
+          createVirtualLine(longitude, latitude);
+          break;
+        case 'measure':
+          handleMeasure(longitude, latitude);
+          break;
+        case 'insert':
+          insertPoint(longitude, latitude);
+          break;
+        default:
+          break;
+      }
+    }
+
+    // 添加其他事件处理
+    const onCalloutTap = (e) => {
+      console.log('callout点击:', e);
+    }
+
+    // 监听地图控件的点击事件​​
+    const onControlTap = (e) => {
+      console.log('control点击:', e);
+    }
+
+    // 打点
+    const createPoint = (longitude, latitude) => {
+      pointForm.longitude = longitude
+      pointForm.latitude = latitude
+      pointForm.pointNo = `P${markers.value.length + 1}`
+      showPointModal.value = true
+    }
+
+    // 管线工具
+    const handleLineCreation = (longitude, latitude) => {
+      tempPoints.value.push({ longitude, latitude })
+
+      if (tempPoints.value.length === 1) {
+        uni.showToast({
+          title: '请点击第二个点完成管线绘制',
+          icon: 'none'
+        })
+      } else if (tempPoints.value.length === 2) {
+        lineForm.startPoint = tempPoints.value[0]
+        lineForm.endPoint = tempPoints.value[1]
+
+        // 计算长度
+        const distance = calculateDistance(
+          tempPoints.value[0].latitude,
+          tempPoints.value[0].longitude,
+          tempPoints.value[1].latitude,
+          tempPoints.value[1].longitude
+        )
+
+        if (distance > 0) {
+          lineForm.length = distance.toFixed(2)
+        } else {
+          uni.showToast({
+            title: '管线长度不能为0，请重新选择点',
+            icon: 'none'
+          })
+          tempPoints.value = []
+          return
+        }
+
+        showLineModal.value = true
+        tempPoints.value = []
+      }
+    }
+
+    // 创建虚拟线逻辑
+    const createVirtualLine = (longitude, latitude) => {
+      const virtualLine = {
+        points: [
+          { longitude, latitude },
+          { longitude: longitude + 0.001, latitude: latitude + 0.001 }
+        ],
+        color: '#FF9800',
+        width: 2,
+        dottedLine: true
+      }
+      polylines.value.push(virtualLine)
+
+      uni.showToast({
+        title: '虚拟线创建成功',
+        icon: 'success'
+      })
+    }
+
+    // 测量工具
+    const handleMeasure = (longitude, latitude) => {
+      measurePoints.value.push({ longitude, latitude })
+
+      if (measurePoints.value.length >= 2) {
+        let totalDistance = 0
+        for (let i = 1; i < measurePoints.value.length; i++) {
+          const distance = calculateDistance(
+            measurePoints.value[i - 1].latitude,
+            measurePoints.value[i - 1].longitude,
+            measurePoints.value[i].latitude,
+            measurePoints.value[i].longitude
+          )
+          totalDistance += distance
+        }
+
+        measureResult.text = `总长度: ${totalDistance.toFixed(2)}米`
+        measureResult.type = 'distance'
+        measureResult.show = true
+      }
+    }
+
+    //插入工具
+    const insertPoint = (longitude, latitude) => {
+      // 在最近的管线上插入点
+      uni.showToast({
+        title: '插入点功能开发中',
+        icon: 'none'
+      })
+    }
+
+    // 计算地球上两点之间的大圆距离（两点之间的最短距离）
+    const calculateDistance = (lat1, lon1, lat2, lon2) => {
+      const R = 6371000 // 地球半径（米）
+      const dLat = (lat2 - lat1) * Math.PI / 180
+      const dLon = (lon2 - lon1) * Math.PI / 180
+      const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+        Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+        Math.sin(dLon / 2) * Math.sin(dLon / 2)
+      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
+      return R * c
+    }
+
+    //定位
+    const getCurrentLocation = () => {
+      uni.getLocation({
+        type: 'gcj02',
+        success: (res) => {
+          mapCenter.longitude = res.longitude
+          mapCenter.latitude = res.latitude
+          mapScale.value = 18
+          uni.showToast({
+            title: '定位成功',
+            icon: 'success'
+          })
+        },
+        fail: () => {
+          uni.showToast({
+            title: '定位失败，请检查定位权限',
+            icon: 'none'
+          })
+        }
+      })
+    }
+
+    // 实现地图交互功能
+    const onMarkerTap = (e) => {
+      console.log('onMarkerTap', e);
+
+      if (!e.detail || !e.detail.markerId) {
+        return
+      }
+
+      const markerId = e.detail.markerId
+      const marker = markers.value.find(m => m.id === markerId)
+
+      if (currentTool.value === 'edit' && marker) {
+        // 编辑管点
+        Object.assign(pointForm, marker.data || {})
+        showPointModal.value = true
+      } else if (currentTool.value === 'delete' && marker) {
+        // 删除管点
+        uni.showModal({
+          title: '确认删除',
+          content: '确定要删除这个管点吗？',
+          success: (res) => {
+            if (res.confirm) {
+              const index = markers.value.findIndex(m => m.id === markerId)
+              if (index > -1) {
+                markers.value.splice(index, 1)
+                uni.showToast({
+                  title: '删除成功',
+                  icon: 'success'
+                })
+              }
+            }
+          }
+        })
+      } else if (!currentTool.value && marker) {
+        // 没有选择工具时，显示管点信息
+        const data = marker.data || {}
+        Object.assign(selectedPipePoint, {
+          id: data.pointNo || marker.title || '未知',
+          type: '管点',
+          diameter: data.diameter || '未知',
+          material: data.material || '未知',
+          depth: data.depth || '未知',
+          status: '正常'
+        })
+        showPipePointModal.value = true
+      }
+    }
+
+    // 监听地图的移动、缩放等操作​​
+    const onRegionChange = (e) => {
+      // 仅在变化结束时（e.type === 'end'）更新中心点坐标​
+      if (e.type === 'end' && e.detail && e.detail.centerLocation) {
+        mapCenter.longitude = e.detail.centerLocation.longitude
+        mapCenter.latitude = e.detail.centerLocation.latitude
+      }
+    }
+
+    // 弹窗相关方法
+    const closePointModal = () => {
+      showPointModal.value = false
+      Object.assign(pointForm, {
+        pointNo: '',
+        diameter: '',
+        material: '',
+        depth: '',
+        remark: '',
+        longitude: 0,
+        latitude: 0
+      })
+    }
+
+    // 管线取消按钮
+    const closeLineModal = () => {
+      showLineModal.value = false
+      Object.assign(lineForm, {
+        type: '',
+        diameter: '',
+        material: '',
+        length: '',
+        remark: '',
+        startPoint: null,
+        endPoint: null
+      })
+    }
+
+    // 关闭管点信息弹窗
+    const closePipePointModal = () => {
+      showPipePointModal.value = false
+    }
+
+    // 创建管点
+    const savePoint = () => {
+      if (!pointForm.pointNo.trim()) {
+        uni.showToast({
+          title: '请输入点号',
+          icon: 'none'
+        })
+        return
+      }
+
+      const newMarker = {
+        id: Date.now(),
+        longitude: pointForm.longitude,
+        latitude: pointForm.latitude,
+        title: pointForm.pointNo,
+        iconPath: '/static/icons/point.svg',
+        width: 30,
+        height: 30,
+        data: { ...pointForm }
+      }
+
+      markers.value.push(newMarker)
+      // 强制更新地图组件
+      markers.value = [...markers.value]
+      closePointModal()
+
+      uni.showToast({
+        title: '管点创建成功',
+        icon: 'success'
+      })
+    }
+
+    //创建管线
+    const saveLine = () => {
+      if (!lineForm.type) {
+        uni.showToast({
+          title: '请选择管线类型',
+          icon: 'none'
+        })
+        return
+      }
+      const newLine = {
+        points: [lineForm.startPoint, lineForm.endPoint],
+        color: getLineColor(lineForm.type),
+        width: 4,
+        data: { ...lineForm }
+      }
+      polylines.value.push(newLine)
+      closeLineModal()
+      uni.showToast({
+        title: '管线创建成功',
+        icon: 'success'
+      })
+    }
+
+    // 管线颜色选择
+    const getLineColor = (type) => {
+      const colors = {
+        '主管': '#2196F3',
+        '支管': '#4CAF50',
+        '接户管': '#FF9800',
+        '阀门': '#F44336',
+        '其他': '#9E9E9E'
+      }
+      return colors[type] || '#2196F3'
+    }
+
+    // 管点材质选择
+    const onMaterialChange = (e) => {
+      materialIndex.value = e.detail.value
+      pointForm.material = materialOptions.value[e.detail.value]
+    }
+
+    // 管线类型
+    const onLineTypeChange = (e) => {
+      lineTypeIndex.value = e.detail.value
+      lineForm.type = lineTypeOptions.value[e.detail.value]
+    }
+
+    // 管线材质选择
+    const onLineMaterialChange = (e) => {
+      lineMaterialIndex.value = e.detail.value
+      lineForm.material = materialOptions.value[e.detail.value]
+    }
+
+    // 清除测量结果
+    const clearMeasure = () => {
+      measurePoints.value = []
+      measureResult.show = false
+    }
+
+    //关闭测量结果
+    const closeMeasureResult = () => {
+      measureResult.show = false
+    }
+
+    // 地图错误处理
+    const onMapError = (e) => {
+      console.error('地图加载错误:', e)
+      uni.showToast({
+        title: '地图加载失败，请检查网络连接',
+        icon: 'none',
+        duration: 3000
+      })
+    }
+
+    // 生命周期
+    onMounted(() => {
+      // 初始化数据
+      console.log('采集页面初始化完成')
+
+      // 检查网络状态
+      checkNetworkStatus()
+
+      // 检查定位权限并获取当前位置
+      checkLocationPermission()
+    })
+
+    // 检查网络状态
+    const checkNetworkStatus = () => {
+      uni.getNetworkType({
+        success: (res) => {
+          console.log('网络类型:', res.networkType);
+          if (res.networkType === 'none') {
+            uni.showToast({
+              title: '网络连接异常，请检查网络设置',
+              icon: 'none',
+              duration: 3000
+            });
+          }
+        }
+      });
+    }
+
+    // 检查定位权限
+    const checkLocationPermission = () => {
+      getCurrentLocation();
+    }
+
+    return {
+      // 响应式数据
+      searchPointNo,
+      currentTool,
+      mapType,
+      mapScale,
+      currentLayerIndex,
+      showDropdown,
+      selectedLayers,
+      materialIndex,
+      lineTypeIndex,
+      lineMaterialIndex,
+      layerOptions,
+      materialOptions,
+      lineTypeOptions,
+      mapCenter,
+      showPointModal,
+      showLineModal,
+      showPipePointModal,
+      pointForm,
+      lineForm,
+      measureResult,
+      selectedPipePoint,
+      markers,
+      polylines,
+      polygons,
+      tempPoints,
+      measurePoints,
+
+      // 方法
+      toggleDropdown,
+      selectLayer,
+      selectAll,
+      selectNone,
+      updateLayerDisplay,
+      getDisplayText,
+      closeDropdown,
+      onSearchInput,
+      searchPoint,
+      toggleMapType,
+      selectTool,
+      onMapTap,
+      getToolName,
+      createAtCenter,
+      onCalloutTap,
+      onControlTap,
+      createPoint,
+      handleLineCreation,
+      createVirtualLine,
+      handleMeasure,
+      insertPoint,
+      calculateDistance,
+      getCurrentLocation,
+      onMarkerTap,
+      onRegionChange,
+      closePointModal,
+      closeLineModal,
+      closePipePointModal,
+      savePoint,
+      saveLine,
+      getLineColor,
+      onMaterialChange,
+      onLineTypeChange,
+      onLineMaterialChange,
+      clearMeasure,
+      closeMeasureResult,
+      onMapError,
+      checkNetworkStatus,
+      checkLocationPermission
+    }
+  }
+}
+</script>
+
+<style>
+.collect-container {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  background-color: #f5f5f5;
+}
+
+.top-toolbar {
+  height: 80px;
+  background-color: #2196F3;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  padding-left: 20px;
+  padding-right: 20px;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+  z-index: 10;
+}
+
+.layer-selector {
+  margin-right: 20px;
+  position: relative;
+  flex-shrink: 0;
+}
+
+.picker-display {
+  display: flex;
+  align-items: center;
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 12px;
+  padding-right: 12px;
+  background-color: rgba(255,255,255,0.9);
+  border-radius: 6px;
+  font-size: 20px;
+  white-space: nowrap;
+}
+
+.arrow {
+  margin-left: 8px;
+  font-size: 16px;
+  color: #666;
+  transition-duration: 300ms;
+  transition-property: transform;
+}
+
+.arrow-up {
+  transform: rotate(180deg);
+}
+
+.dropdown {
+  position: fixed;
+  top: 80px;
+  left: 20px;
+  min-width: 200px;
+  width: 250px;
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  z-index: 99999;
+  max-height: 400px;
+  border: 1px solid #e0e0e0;
+}
+
+.dropdown-item {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 15px;
+  padding-right: 15px;
+  border-bottom-width: 1px;
+  border-bottom-color: #f0f0f0;
+  border-bottom-style: solid;
+}
+
+.select-all-item {
+  background-color: #e3f2fd;
+  color: #2196F3;
+  font-weight: bold;
+  text-align: center;
+  font-size: 14px;
+}
+
+.checkbox-wrapper {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-start;
+}
+
+.checkbox {
+  width: 18px;
+  height: 18px;
+  border-width: 1px;
+  border-color: #ddd;
+  border-style: solid;
+  border-radius: 3px;
+  margin-right: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  color: white;
+  flex-shrink: 0;
+}
+
+.checked {
+  background-color: #2196F3;
+  border-color: #2196F3;
+}
+
+.layer-name {
+  flex: 1;
+  font-size: 14px;
+  line-height: 18px;
+}
+
+.dropdown-divider {
+  height: 1px;
+  background-color: #e0e0e0;
+  margin-top: 4px;
+  margin-bottom: 4px;
+}
+
+.search-container {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  background-color: rgba(255,255,255,0.9);
+  border-radius: 20px;
+  padding-left: 15px;
+  padding-right: 15px;
+  height: 40px;
+}
+
+.search-input {
+  flex: 1;
+  height: 40px;
+  font-size: 18px;
+  background-color: transparent;
+  border-width: 0;
+}
+
+.search-btn {
+  padding: 6px;
+  font-size: 20px;
+  color: #666;
+}
+
+.map-wrapper {
+  flex: 1;
+  position: relative;
+  min-height: 800px;
+}
+
+.amap {
+  width: 750px;
+  flex: 1;
+  min-height: 800px;
+}
+
+.location-btn {
+  position: fixed;
+  left: 20px;
+  bottom: 150px;
+  width: 60px;
+  height: 60px;
+  background-color: #2196F3;
+  border-radius: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 16px rgba(33, 150, 243, 0.4);
+  z-index: 998;
+  border: 2px solid white;
+}
+
+.location-text {
+  font-size: 16px;
+  color: white;
+  font-weight: bold;
+}
+
+.map-crosshair {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  z-index: 100;
+}
+
+.crosshair-horizontal {
+  position: absolute;
+  top: -2px;
+  left: -30px;
+  width: 60px;
+  height: 4px;
+  background-color: #ff4444;
+  border-radius: 2px;
+  box-shadow: 0 0 8px rgba(255, 68, 68, 0.5);
+}
+
+.crosshair-vertical {
+  position: absolute;
+  top: -30px;
+  left: -2px;
+  width: 4px;
+  height: 60px;
+  background-color: #ff4444;
+  border-radius: 2px;
+  box-shadow: 0 0 8px rgba(255, 68, 68, 0.5);
+}
+
+.create-btn {
+  position: absolute;
+  bottom: 40px;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: #2196F3;
+  color: white;
+  padding-top: 20px;
+  padding-bottom: 20px;
+  padding-left: 40px;
+  padding-right: 40px;
+  border-radius: 50px;
+  box-shadow: 0 8px 24px rgba(33, 150, 243, 0.3);
+  z-index: 100;
+}
+
+.create-text {
+  font-size: 28px;
+  color: white;
+  font-weight: 500;
+}
+
+.pipe-point-modal {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 99999;
+}
+
+.info-item {
+  display: flex;
+  flex-direction: row; /* 确保子元素水平排列 */
+  align-items: center;
+  padding-top: 16rpx;
+  padding-bottom: 16rpx;
+  border-bottom-width: 2rpx;
+  border-bottom-color: #f0f0f0;
+  border-bottom-style: solid;
+}
+
+.info-item .label {
+  width: 160rpx;
+  font-size: 28rpx;
+  color: #666;
+  font-weight: bold;
+  margin-bottom: 0;
+}
+
+.info-item .value-wrapper {
+  width: 500rpx; /* 设置固定宽度以匹配 form-input */
+}
+
+.info-item .value {
+  width: 100%; /* 让文本填充其父容器 */
+  font-size: 28rpx;
+  color: #333;
+}
+
+.point-modal, .line-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0,0,0,0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 998;
+}
+
+.modal-content {
+  width: 680rpx;
+  background-color: white;
+  border-radius: 16rpx;
+  overflow: hidden;
+}
+
+.modal-header {
+  padding-top: 30rpx;
+  padding-bottom: 30rpx;
+  padding-left: 40rpx;
+  padding-right: 40rpx;
+  background-color: #2196F3;
+  color: white;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.modal-title {
+  font-size: 32rpx;
+  font-weight: bold;
+  color: white;
+}
+
+.modal-header > .close-btn {
+  width: 48rpx;
+  height: 48rpx;
+  border-radius: 24rpx;
+  background-color: rgba(255,255,255,0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 36rpx;
+}
+
+.modal-body {
+  padding: 40rpx;
+}
+
+.form-item {
+  margin-bottom: 30rpx;
+}
+
+.label {
+  display: block;
+  margin-bottom: 10rpx;
+  font-size: 28rpx;
+  color: #333;
+  font-weight: bold;
+}
+
+.form-input, .form-textarea {
+  width: 500rpx;
+  height: 72rpx;
+  border-width: 1px;
+  border-color: #ddd;
+  border-style: solid;
+  border-radius: 8rpx;
+  font-size: 28rpx;
+  box-sizing: border-box;
+}
+
+.form-textarea {
+  height: 120rpx;
+}
+
+.form-item .picker-display {
+  width: 100%;
+  padding-top: 16rpx;
+  padding-bottom: 16rpx;
+  padding-left: 24rpx;
+  padding-right: 24rpx;
+  border-width: 1px;
+  border-color: #ddd;
+  border-style: solid;
+  border-radius: 8rpx;
+  font-size: 28rpx;
+  background-color: #fff;
+  box-sizing: border-box;
+}
+
+.modal-footer {
+  padding-top: 30rpx;
+  padding-bottom: 30rpx;
+  padding-left: 40rpx;
+  padding-right: 40rpx;
+  background-color: #f8f8f8;
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-end;
+}
+
+.cancel-btn, .confirm-btn {
+  padding-top: 16rpx;
+  padding-bottom: 16rpx;
+  padding-left: 40rpx;
+  padding-right: 40rpx;
+  border-radius: 8rpx;
+  border-width: 0;
+  font-size: 28rpx;
+  margin-left: 20rpx;
+}
+
+.cancel-btn {
+  background-color: #f5f5f5;
+  color: #666;
+}
+
+.confirm-btn {
+  background-color: #2196F3;
+  color: white;
+}
+
+.measure-result {
+  position: fixed;
+  top: 100px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 999;
+}
+
+.result-content {
+  background-color: white;
+  padding-top: 15px;
+  padding-bottom: 15px;
+  padding-left: 20px;
+  padding-right: 20px;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  text-align: center;
+}
+
+.result-title {
+  font-size: 14px;
+  color: #666;
+  margin-bottom: 5px;
+}
+
+.result-value {
+  font-size: 18px;
+  font-weight: bold;
+  color: #2196F3;
+  margin-bottom: 15px;
+}
+
+.result-actions {
+  display: flex;
+}
+
+.clear-btn, .close-btn {
+  flex: 1;
+  padding-top: 6px;
+  padding-bottom: 6px;
+  padding-left: 12px;
+  padding-right: 12px;
+  border-radius: 4px;
+  border-width: 0;
+  font-size: 12px;
+  margin-left: 5px;
+  margin-right: 5px;
+}
+
+.clear-btn {
+  background-color: #f44336;
+  color: white;
+}
+
+.close-btn {
+  background-color: #666;
+  color: white;
+}
+
+.right-toolbar {
+  position: absolute;
+  right: 20px;
+  top: 20px;
+  width: 120px;
+  height: 365vh;
+  background-color: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+  z-index: 998;
+  pointer-events: auto;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.tool-section {
+  border-bottom-width: 1px;
+  border-bottom-color: #f0f0f0;
+  border-bottom-style: solid;
+  flex-shrink: 0;
+}
+
+.section-title {
+  padding-top: 12px;
+  padding-bottom: 12px;
+  padding-left: 16px;
+  padding-right: 16px;
+  font-size: 16px;
+  color: #666;
+  background-color: #f8f8f8;
+  text-align: center;
+  font-weight: bold;
+}
+
+.tool-btn {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  padding-top: 6px;
+  padding-bottom: 6px;
+  padding-left: 8px;
+  padding-right: 8px;
+  transition-duration: 300ms;
+  transition-property: background-color;
+  pointer-events: auto;
+  min-height: 40px;
+}
+
+.tool-btn:active {
+  background-color: #f0f0f0;
+}
+
+.active {
+  background-color: #e3f2fd;
+  color: #2196F3;
+}
+
+.map-type-btn.active {
+  background-color: #e8f5e8;
+  color: #4CAF50;
+}
+
+.tool-icon {
+  font-size: 18px;
+  margin-right: 6px;
+  flex-shrink: 0;
+}
+
+.tool-text {
+  font-size: 12px;
+  text-align: left;
+  line-height: 1.2;
+  flex: 1;
+}
+</style>

@@ -64,6 +64,54 @@
     </view>
 
     <!-- 管点属性弹窗 -->
+    <!-- #ifdef APP-PLUS -->
+    <cover-view class="point-modal" v-if="showPointModal" @tap="closePointModal">
+      <cover-view class="modal-content" @tap.stop="">
+        <cover-view class="modal-header">
+          <cover-view class="modal-title">管点属性</cover-view>
+          <cover-view class="close-btn" @tap="closePointModal">×</cover-view>
+        </cover-view>
+        <cover-view class="modal-body">
+          <cover-view class="form-item">
+            <cover-view class="label">点号：</cover-view>
+            <cover-view class="input-wrapper">
+              <input type="text" v-model="pointForm.pointNo" placeholder="请输入点号" />
+            </cover-view>
+          </cover-view>
+          <cover-view class="form-item">
+            <cover-view class="label">管径：</cover-view>
+            <cover-view class="input-wrapper">
+              <input type="number" v-model="pointForm.diameter" placeholder="请输入管径(mm)" />
+            </cover-view>
+          </cover-view>
+          <cover-view class="form-item">
+            <cover-view class="label">材质：</cover-view>
+            <picker @change="onMaterialChange" :value="materialIndex" :range="materialOptions">
+              <cover-view class="picker-display">{{ materialOptions[materialIndex] }}</cover-view>
+            </picker>
+          </cover-view>
+          <cover-view class="form-item">
+            <cover-view class="label">埋深：</cover-view>
+            <cover-view class="input-wrapper">
+              <input type="number" v-model="pointForm.depth" placeholder="请输入埋深(m)" />
+            </cover-view>
+          </cover-view>
+          <cover-view class="form-item">
+            <cover-view class="label">备注：</cover-view>
+            <cover-view class="input-wrapper">
+              <textarea v-model="pointForm.remark" placeholder="请输入备注信息"></textarea>
+            </cover-view>
+          </cover-view>
+        </cover-view>
+        <cover-view class="modal-footer">
+          <cover-view class="cancel-btn" @tap="closePointModal">取消</cover-view>
+          <cover-view class="confirm-btn" @tap="savePoint">确定</cover-view>
+        </cover-view>
+      </cover-view>
+    </cover-view>
+    <!-- #endif -->
+    
+    <!-- #ifndef APP-PLUS -->
     <view class="point-modal" v-if="showPointModal" @click="closePointModal">
       <view class="modal-content" @click.stop>
         <view class="modal-header">
@@ -100,46 +148,53 @@
         </view>
       </view>
     </view>
+    <!-- #endif -->
 
     <!-- 管线属性弹窗 -->
-    <view class="line-modal" v-if="showLineModal" @click="closeLineModal">
-      <view class="modal-content" @click.stop>
-        <view class="modal-header">
-          <text class="modal-title">管线属性</text>
-          <view class="close-btn" @click="closeLineModal">×</view>
-        </view>
-        <view class="modal-body">
-          <view class="form-item">
-            <text class="label">管线类型：</text>
+    <cover-view class="line-modal" v-if="showLineModal" @tap="closeLineModal">
+      <cover-view class="modal-content" @tap.stop="">
+        <cover-view class="modal-header">
+          <cover-view class="modal-title">管线属性</cover-view>
+          <cover-view class="close-btn" @tap="closeLineModal">×</cover-view>
+        </cover-view>
+        <cover-view class="modal-body">
+          <cover-view class="form-item">
+            <cover-view class="label">管线类型：</cover-view>
             <picker @change="onLineTypeChange" :value="lineTypeIndex" :range="lineTypeOptions">
-              <view class="picker-display">{{ lineTypeOptions[lineTypeIndex] }}</view>
+              <cover-view class="picker-display">{{ lineTypeOptions[lineTypeIndex] }}</cover-view>
             </picker>
-          </view>
-          <view class="form-item">
-            <text class="label">管径：</text>
-            <input type="number" v-model="lineForm.diameter" placeholder="请输入管径(mm)" />
-          </view>
-          <view class="form-item">
-            <text class="label">材质：</text>
+          </cover-view>
+          <cover-view class="form-item">
+            <cover-view class="label">管径：</cover-view>
+            <cover-view class="input-wrapper">
+              <input type="number" v-model="lineForm.diameter" placeholder="请输入管径(mm)" />
+            </cover-view>
+          </cover-view>
+          <cover-view class="form-item">
+            <cover-view class="label">材质：</cover-view>
             <picker @change="onLineMaterialChange" :value="lineMaterialIndex" :range="materialOptions">
-              <view class="picker-display">{{ materialOptions[lineMaterialIndex] }}</view>
+              <cover-view class="picker-display">{{ materialOptions[lineMaterialIndex] }}</cover-view>
             </picker>
-          </view>
-          <view class="form-item">
-            <text class="label">长度：</text>
-            <input type="number" v-model="lineForm.length" placeholder="自动计算" disabled />
-          </view>
-          <view class="form-item">
-            <text class="label">备注：</text>
-            <textarea v-model="lineForm.remark" placeholder="请输入备注信息"></textarea>
-          </view>
-        </view>
-        <view class="modal-footer">
-          <button class="cancel-btn" @click="closeLineModal">取消</button>
-          <button class="confirm-btn" @click="saveLine">确定</button>
-        </view>
-      </view>
-    </view>
+          </cover-view>
+          <cover-view class="form-item">
+            <cover-view class="label">长度：</cover-view>
+            <cover-view class="input-wrapper">
+              <input type="number" v-model="lineForm.length" placeholder="自动计算" disabled />
+            </cover-view>
+          </cover-view>
+          <cover-view class="form-item">
+            <cover-view class="label">备注：</cover-view>
+            <cover-view class="input-wrapper">
+              <textarea v-model="lineForm.remark" placeholder="请输入备注信息"></textarea>
+            </cover-view>
+          </cover-view>
+        </cover-view>
+        <cover-view class="modal-footer">
+          <cover-view class="cancel-btn" @tap="closeLineModal">取消</cover-view>
+          <cover-view class="confirm-btn" @tap="saveLine">确定</cover-view>
+        </cover-view>
+      </cover-view>
+    </cover-view>
 
     <!-- 测量结果显示 -->
     <view class="measure-result" v-if="measureResult.show">
@@ -800,6 +855,23 @@ onMounted(() => {
   // App端设置状态栏背景色和文字颜色
   plus.navigator.setStatusBarBackground('#2196F3')
   plus.navigator.setStatusBarStyle('light')
+  
+  // 尝试控制地图层级
+  setTimeout(() => {
+    try {
+      const currentWebview = plus.webview.currentWebview()
+      const mapContext = uni.createMapContext('amap')
+      
+      // 设置地图容器的层级
+      const mapElement = document.getElementById('amap')
+      if (mapElement) {
+        mapElement.style.zIndex = '1'
+        mapElement.style.position = 'relative'
+      }
+    } catch (e) {
+      console.log('地图层级控制失败:', e)
+    }
+  }, 1000)
   // #endif
   
   // #ifdef MP-WEIXIN
