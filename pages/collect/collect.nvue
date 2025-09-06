@@ -40,7 +40,7 @@
     <div class="map-wrapper">
       <map id="amap" class="amap" :longitude="mapCenter.longitude" :latitude="mapCenter.latitude" :scale="mapScale"
         :markers="markers" :polyline="polylines" :polygons="polygons" @tap="onMapTap" @click="onMapTap"
-        @markertap="onMarkerTap" @regionchange="onRegionChange" @error="onMapError" @callouttap="onCalloutTap"
+        @markertap="onMarkerTap" @poitap="onPoiTap" @regionchange="onRegionChange" @error="onMapError" @callouttap="onCalloutTap"
         @controltap="onControlTap" show-location enable-3D enable-overlooking enable-zoom enable-scroll enable-rotate
         :enable-satellite="mapType === 'satellite'">
       </map>
@@ -623,6 +623,39 @@ export default {
       }
     }
 
+    // 提取公共的地图点击处理逻辑
+    const handleTapForCreation = (longitude, latitude) => {
+      uni.showModal({
+        title: '创建确认',
+        content: `将在点击位置创建${getToolName(currentTool.value)}，是否继续？`,
+        success: (res) => {
+          if (res.confirm) {
+            console.log('使用坐标:', longitude, latitude);
+
+            switch (currentTool.value) {
+              case 'point':
+                createPoint(longitude, latitude);
+                break;
+              case 'line':
+                handleLineCreation(longitude, latitude);
+                break;
+              case 'virtual':
+                createVirtualLine(longitude, latitude);
+                break;
+              case 'measure':
+                handleMeasure(longitude, latitude);
+                break;
+              case 'insert':
+                insertPoint(longitude, latitude);
+                break;
+              default:
+                break;
+            }
+          }
+        }
+      });
+    };
+
     //创建工具
     const onMapTap = (e) => {
       console.log('onMapTap', e);
@@ -650,36 +683,7 @@ export default {
         console.log('使用地图中心点坐标作为备选:', clickLongitude, clickLatitude);
       }
 
-      // 提示用户确认创建位置
-      uni.showModal({
-        title: '创建确认',
-        content: `将在点击位置创建${getToolName(currentTool.value)}，是否继续？`,
-        success: (res) => {
-          if (res.confirm) {
-            console.log('使用坐标:', clickLongitude, clickLatitude);
-
-            switch (currentTool.value) {
-              case 'point':
-                createPoint(clickLongitude, clickLatitude);
-                break;
-              case 'line':
-                handleLineCreation(clickLongitude, clickLatitude);
-                break;
-              case 'virtual':
-                createVirtualLine(clickLongitude, clickLatitude);
-                break;
-              case 'measure':
-                handleMeasure(clickLongitude, clickLatitude);
-                break;
-              case 'insert':
-                insertPoint(clickLongitude, clickLatitude);
-                break;
-              default:
-                break;
-            }
-          }
-        }
-      });
+      handleTapForCreation(clickLongitude, clickLatitude);
     }
 
     // 获取工具名称
@@ -726,6 +730,64 @@ export default {
         default:
           break;
       }
+    }
+
+    // POI点击事件处理（处理地图上的兴趣点，如"东门"、"幼儿园"等）
+    const onPoiTap = (e) => {
+      console.log('POI点击事件:', e);
+      
+      if (!currentTool.value) {
+        uni.showToast({
+          title: '请先选择创建工具',
+          icon: 'none'
+        });
+        return;
+      }
+
+      // 获取POI点击位置的坐标
+      let clickLongitude, clickLatitude;
+      
+      if (e.detail && e.detail.longitude !== undefined && e.detail.latitude !== undefined) {
+        clickLongitude = e.detail.longitude;
+        clickLatitude = e.detail.latitude;
+        console.log('从POI事件获取坐标:', clickLongitude, clickLatitude);
+      } else {
+        // 如果无法获取坐标，使用地图中心点
+        clickLongitude = mapCenter.longitude;
+        clickLatitude = mapCenter.latitude;
+        console.log('POI事件无坐标，使用地图中心点:', clickLongitude, clickLatitude);
+      }
+
+      // 提示用户确认创建位置
+      uni.showModal({
+        title: '创建确认',
+        content: `将在${e.detail?.name || 'POI点'}位置创建${getToolName(currentTool.value)}，是否继续？`,
+        success: (res) => {
+          if (res.confirm) {
+            console.log('确认在POI位置创建，坐标:', clickLongitude, clickLatitude);
+
+            switch (currentTool.value) {
+              case 'point':
+                createPoint(clickLongitude, clickLatitude);
+                break;
+              case 'line':
+                handleLineCreation(clickLongitude, clickLatitude);
+                break;
+              case 'virtual':
+                createVirtualLine(clickLongitude, clickLatitude);
+                break;
+              case 'measure':
+                handleMeasure(clickLongitude, clickLatitude);
+                break;
+              case 'insert':
+                insertPoint(clickLongitude, clickLatitude);
+                break;
+              default:
+                break;
+            }
+          }
+        }
+      });
     }
 
     // 添加其他事件处理
@@ -877,6 +939,20 @@ export default {
 
       const markerId = e.detail.markerId
       const marker = markers.value.find(m => m.id === markerId)
+
+      // 如果当前工具是“管点”，则将标记点点击视为地图点击，用于创建管点
+      if (currentTool.value === 'point') {
+        // 从marker对象获取坐标，这是我们创建marker时存储的坐标
+        if (marker && marker.longitude !== undefined && marker.latitude !== undefined) {
+          console.log('从marker对象获取坐标:', marker.longitude, marker.latitude);
+          handleTapForCreation(marker.longitude, marker.latitude);
+        } else {
+          // 如果marker没有坐标信息，使用地图中心点
+          console.log('marker没有坐标信息，使用地图中心点:', mapCenter.longitude, mapCenter.latitude);
+          handleTapForCreation(mapCenter.longitude, mapCenter.latitude);
+        }
+        return; // 阻止后续的标记点处理逻辑
+      }
 
       if (currentTool.value === 'edit' && marker) {
         // 编辑管点
@@ -1140,6 +1216,7 @@ export default {
       onMapTap,
       getToolName,
       createAtCenter,
+      onPoiTap,
       onCalloutTap,
       onControlTap,
       createPoint,
@@ -1164,7 +1241,8 @@ export default {
       closeMeasureResult,
       onMapError,
       checkNetworkStatus,
-      checkLocationPermission
+      checkLocationPermission,
+      handleTapForCreation // 添加新函数到返回对象
     }
   }
 }
