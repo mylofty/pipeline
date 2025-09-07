@@ -5,7 +5,7 @@
       <!-- 图层管理下拉框 -->
       <div class="layer-selector">
         <div class="picker-display" @click.stop="toggleDropdown">
-          <text>{{ getDisplayText() }}</text>
+          <text class="picker-text">{{ getDisplayText() }}</text>
           <text class="arrow" :class="{ 'arrow-up': showDropdown }">▼</text>
         </div>
         <div class="dropdown" v-if="showDropdown" @click.stop>
@@ -26,14 +26,16 @@
         </div>
       </div>
 
-      <!-- 探点号搜索框 -->
-      <div class="search-container">
-        <input type="text" placeholder="搜索管点物探点号..." v-model="searchPointNo" @input="onSearchInput"
-          class="search-input" confirm-type="search" @click.stop />
+    <!-- 探点号搜索框 -->
+    <div class="search-container">
+        <input type="text" placeholder="搜索管点物探点号..." v-model="searchPointNo" @input="onSearchInput" @confirm="searchPoint"
+            class="search-input" confirm-type="search" @click.stop />
         <div class="search-btn" @click="searchPoint">
-          <text>🔍</text>
+            <text>🔍</text>
         </div>
-      </div>
+    </div>
+	
+
     </div>
 
     <!-- 地图容器 -->
@@ -1257,7 +1259,7 @@ export default {
 }
 
 .top-toolbar {
-  height: 80px;
+  height: 60px; /* 恢复高度 */
   background-color: #2196F3;
   display: flex;
   flex-direction: row;
@@ -1276,15 +1278,23 @@ export default {
 
 .picker-display {
   display: flex;
+  flex-direction: row;
   align-items: center;
+  white-space: nowrap;
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 12px;
   padding-right: 12px;
   background-color: rgba(255,255,255,0.9);
   border-radius: 6px;
-  font-size: 20px;
-  white-space: nowrap;
+  font-size: 18px;
+}
+
+.picker-text {
+	flex: 1;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
 }
 
 .arrow {
@@ -1303,8 +1313,7 @@ export default {
   position: fixed;
   top: 80px;
   left: 20px;
-  min-width: 200px;
-  width: 250px;
+  min-width: 120px;
   background-color: white;
   border-radius: 8px;
   box-shadow: 0 4px 12px rgba(0,0,0,0.15);
@@ -1375,27 +1384,40 @@ export default {
 .search-container {
   flex: 1;
   display: flex;
+  flex-direction: row;
   align-items: center;
   background-color: rgba(255,255,255,0.9);
-  border-radius: 20px;
-  padding-left: 15px;
-  padding-right: 15px;
-  height: 40px;
+  border-radius: 8px;
+  padding: 8px;
+  margin-left: 10px;
 }
 
 .search-input {
   flex: 1;
-  height: 40px;
-  font-size: 18px;
   background-color: transparent;
-  border-width: 0;
+  border: none;
+  font-size: 16px;
+  color: #333;
+  padding: 8px 12px;
 }
 
 .search-btn {
-  padding: 6px;
-  font-size: 20px;
-  color: #666;
+  width: 40px;
+  height: 40px;
+  background-color: #2196F3;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: 8px;
 }
+
+.search-btn text {
+  font-size: 18px;
+  color: white;
+}
+
+
 
 .map-wrapper {
   flex: 1;
@@ -1717,7 +1739,7 @@ export default {
   right: 20px;
   top: 20px;
   width: 120px;
-  height: 365vh;
+  height: 460vh;
   background-color: white;
   border-radius: 12px;
   box-shadow: 0 4px 16px rgba(0,0,0,0.15);
@@ -1758,7 +1780,6 @@ export default {
   transition-duration: 300ms;
   transition-property: background-color;
   pointer-events: auto;
-  min-height: 40px;
 }
 
 .tool-btn:active {
