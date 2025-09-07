@@ -26,6 +26,12 @@
 			}
 		},
 		{
+			"path": "pages/collect/pipeline-config",
+			"style": {
+				"navigationBarTitleText": "管线配置"
+			}
+		},
+		{
 			"path": "pages/statistics/statistics",
 			"style": {
 				"navigationBarTitleText": "统计"

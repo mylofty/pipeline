@@ -67,56 +67,6 @@
       />
     </div>
 
-    <!-- 管线属性弹窗 -->
-    <div class="line-modal" v-if="showLineModal" @click="closeLineModal">
-      <div class="modal-content" @click.stop>
-        <div class="modal-header">
-          <text class="modal-title">管线属性</text>
-          <div class="close-btn" @click="closeLineModal">
-            <text>×</text>
-          </div>
-        </div>
-        <div class="modal-body"> 
-          <div class="form-item">
-            <text class="label">管线类型：</text>
-            <picker @change="onLineTypeChange" :value="lineTypeIndex" :range="lineTypeOptions">
-              <div class="picker-display">
-                <text>{{ lineTypeOptions[lineTypeIndex] }}</text>
-              </div>
-            </picker>
-          </div>
-          <div class="form-item">
-            <text class="label">管径：</text>
-            <input type="number" v-model="lineForm.diameter" placeholder="请输入管径(mm)" class="form-input" />
-          </div>
-          <div class="form-item">
-            <text class="label">材质：</text>
-            <picker @change="onLineMaterialChange" :value="lineMaterialIndex" :range="materialOptions">
-              <div class="picker-display">
-                <text>{{ materialOptions[lineMaterialIndex] }}</text>
-              </div>
-            </picker>
-          </div>
-          <div class="form-item">
-            <text class="label">长度：</text>
-            <input type="number" v-model="lineForm.length" placeholder="自动计算" disabled class="form-input" />
-          </div>
-          <div class="form-item">
-            <text class="label">备注：</text>
-            <textarea v-model="lineForm.remark" placeholder="请输入备注信息" class="form-textarea"></textarea>
-          </div>
-        </div>
-        <div class="modal-footer">
-          <div class="cancel-btn" @click="closeLineModal">
-            <text>取消</text>
-          </div>
-          <div class="confirm-btn" @click="saveLine">
-            <text>确定</text>
-          </div>
-        </div>
-      </div>
-    </div>
-
     <!-- 测量结果显示 -->
     <div class="measure-result" v-if="measureResult.show">
       <div class="result-content">
@@ -156,6 +106,10 @@ export default {
     const lineTypeIndex = ref(0)
     const lineMaterialIndex = ref(0)
 
+    // 管线相关状态
+    const pipelineMode = ref(false)
+    const selectedPoints = ref([])
+
     // 图层选项
     const layerOptions = ref([
       '给水管网',
@@ -166,24 +120,6 @@ export default {
       '通信管网'
     ])
 
-    // // 材质选项
-    // const materialOptions = ref([
-    //   'PE',
-    //   'PVC',
-    //   '铸铁',
-    //   '钢管',
-    //   '水泥管',
-    //   '其他'
-    // ])
-
-    // 管线类型选项
-    const lineTypeOptions = ref([
-      '主管',
-      '支管',
-      '接户管',
-      '阀门',
-      '其他'
-    ])
 
     // 地图中心点
     const mapCenter = reactive({
@@ -195,28 +131,6 @@ export default {
     const showPointModal = ref(false)
     const showLineModal = ref(false)
     const showPipePointModal = ref(false)
-
-    // 管点表单数据
-    const pointForm = reactive({
-      pointNo: '',
-      diameter: '',
-      material: '',
-      depth: '',
-      remark: '',
-      longitude: 0,
-      latitude: 0
-    })
-
-    // 管线表单数据
-    const lineForm = reactive({
-      type: '',
-      diameter: '',
-      material: '',
-      length: '',
-      remark: '',
-      startPoint: null,
-      endPoint: null
-    })
 
     // 测量结果
     const measureResult = reactive({
@@ -355,7 +269,28 @@ export default {
     }
 
     const selectTool = (tool) => {
-      currentTool.value = currentTool.value === tool ? '' : tool
+      // 如果点击的是当前工具，则取消选择
+      if (currentTool.value === tool) {
+        currentTool.value = ''
+        pipelineMode.value = false
+        // 清除管线选择状态
+        if (tool === 'line') {
+          selectedPoints.value.forEach(point => {
+            highlightMarker(point.id, false)
+          })
+          selectedPoints.value = []
+        }
+      } else {
+        currentTool.value = tool
+        
+        // 如果选择管线工具，启动管线模式
+        if (tool === 'line') {
+          pipelineMode.value = true
+          selectedPoints.value = []
+        } else {
+          pipelineMode.value = false
+        }
+      }
 
       // 清除临时数据
       tempPoints.value = []
@@ -376,10 +311,17 @@ export default {
       }
 
       if (currentTool.value) {
-        uni.showToast({
-          title: `已选择${toolNames[tool]}，请在地图上选择位置`,
-          icon: 'none'
-        })
+        if (tool === 'line') {
+          uni.showToast({
+            title: '管线模式已启动，请依次点击两个已有的管点',
+            icon: 'none'
+          })
+        } else {
+          uni.showToast({
+            title: `已选择${toolNames[tool]}，请在地图上选择位置`,
+            icon: 'none'
+          })
+        }
       }
     }
 
@@ -423,6 +365,15 @@ export default {
       if (!currentTool.value) {
         uni.showToast({
           title: '请先选择创建工具',
+          icon: 'none'
+        });
+        return;
+      }
+
+      // 如果是管线工具，直接提示用户点击管点，不要调用handleTapForCreation
+      if (currentTool.value === 'line') {
+        uni.showToast({
+          title: '请点击已有的管点，不要点击空白区域',
           icon: 'none'
         });
         return;
@@ -502,9 +453,6 @@ export default {
               case 'point':
                 createPoint(clickLongitude, clickLatitude);
                 break;
-              case 'line':
-                handleLineCreation(clickLongitude, clickLatitude);
-                break;
               case 'virtual':
                 createVirtualLine(clickLongitude, clickLatitude);
                 break;
@@ -540,43 +488,29 @@ export default {
       });
       
       // 清除工具选择
-      currentTool.value = ''
+      // currentTool.value = ''
     }
 
-    // 管线工具
+    // 管线工具 - 处理地图空白区域的点击（提示用户点击管点）
     const handleLineCreation = (longitude, latitude) => {
-      tempPoints.value.push({ longitude, latitude })
+      uni.showToast({
+        title: '请点击已有的管点，不要点击空白区域',
+        icon: 'none'
+      })
+    }
 
-      if (tempPoints.value.length === 1) {
-        uni.showToast({
-          title: '请点击第二个点完成管线绘制',
-          icon: 'none'
-        })
-      } else if (tempPoints.value.length === 2) {
-        lineForm.startPoint = tempPoints.value[0]
-        lineForm.endPoint = tempPoints.value[1]
 
-        // 计算长度
-        const distance = calculateDistance(
-          tempPoints.value[0].latitude,
-          tempPoints.value[0].longitude,
-          tempPoints.value[1].latitude,
-          tempPoints.value[1].longitude
-        )
 
-        if (distance > 0) {
-          lineForm.length = distance.toFixed(2)
-        } else {
-          uni.showToast({
-            title: '管线长度不能为0，请重新选择点',
-            icon: 'none'
-          })
-          tempPoints.value = []
-          return
-        }
-
-        showLineModal.value = true
-        tempPoints.value = []
+    // 高亮标记点
+    const highlightMarker = (markerId, highlight) => {
+      const markerIndex = markers.value.findIndex(m => m.id === markerId)
+      if (markerIndex > -1) {
+        markers.value[markerIndex].iconPath = highlight 
+          ? '/static/icons/pipe-point.svg' 
+          : '/static/icons/point.svg'
+        // 改变标记点的大小来表示选中状态
+        markers.value[markerIndex].width = highlight ? 40 : 30
+        markers.value[markerIndex].height = highlight ? 40 : 30
       }
     }
 
@@ -642,6 +576,19 @@ export default {
       return R * c
     }
 
+    // 计算箭头旋转角度
+    const calculateArrowRotation = (lat1, lon1, lat2, lon2) => {
+      const dLon = (lon2 - lon1) * Math.PI / 180
+      const lat1Rad = lat1 * Math.PI / 180
+      const lat2Rad = lat2 * Math.PI / 180
+      
+      const y = Math.sin(dLon) * Math.cos(lat2Rad)
+      const x = Math.cos(lat1Rad) * Math.sin(lat2Rad) - Math.sin(lat1Rad) * Math.cos(lat2Rad) * Math.cos(dLon)
+      
+      const bearing = Math.atan2(y, x) * 180 / Math.PI
+      return (bearing + 360) % 360 // 确保角度为正值
+    }
+
     //跳转到管点信息页面（如果需要的话）
     const openPipeInfo = () => {
       uni.showToast({
@@ -652,14 +599,64 @@ export default {
 
     // 实现地图交互功能
     const onMarkerTap = (e) => {
-      console.log('onMarkerTap', e);
+      console.log('=== onMarkerTap事件调试 ===');
+      console.log('完整事件对象:', JSON.stringify(e, null, 2));
 
       if (!e.detail || !e.detail.markerId) {
+        console.log('❌ 事件详情或markerId为空');
         return
       }
 
       const markerId = e.detail.markerId
-      const marker = markers.value.find(m => m.id === markerId)
+      console.log('📍 点击的markerId:', markerId, '(类型:', typeof markerId, ')');
+      console.log('📋 当前所有markers:');
+      markers.value.forEach((m, index) => {
+        console.log(`  ${index}: id="${m.id}" (类型:${typeof m.id}), title="${m.title}"`);
+      });
+      
+      // 简化查找逻辑，专注于数字ID匹配
+      let marker = markers.value.find(m => m.id === markerId || m.markerId === markerId)
+      console.log('🔍 直接匹配结果:', marker ? '找到' : '未找到');
+      
+      console.log('✅ 最终找到的marker:', marker);
+
+      // 如果当前工具是"管线"，处理管线模式下的管点选择
+      if (currentTool.value === 'line') {
+        if (!marker) {
+          uni.showToast({
+            title: '未找到管点信息，请确保点击的是已有管点',
+            icon: 'none'
+          })
+          return
+        }
+
+        // 检查是否已经选择过这个点
+        if (selectedPoints.value.find(p => p.id === marker.id)) {
+          uni.showToast({
+            title: '该管点已被选择',
+            icon: 'none'
+          })
+          return
+        }
+
+        selectedPoints.value.push(marker)
+
+        if (selectedPoints.value.length === 1) {
+          // 高亮第一个选中的点
+          highlightMarker(marker.id, true)
+          uni.showToast({
+            title: `已选择起点：${marker.title || marker.id}，请选择终点`,
+            icon: 'none'
+          })
+        } else if (selectedPoints.value.length === 2) {
+          // 高亮第二个选中的点
+          highlightMarker(marker.id, true)
+          
+          // 跳转到管线配置页面
+          navigateToPipelineConfig()
+        }
+        return; // 阻止后续的标记点处理逻辑
+      }
 
       // 如果当前工具是“管点”，则将标记点点击视为地图点击，用于创建管点
       if (currentTool.value === 'point') {
@@ -735,67 +732,113 @@ export default {
       })
     }
 
-    // 管线取消按钮
-    const closeLineModal = () => {
-      showLineModal.value = false
-      Object.assign(lineForm, {
-        type: '',
-        diameter: '',
-        material: '',
-        length: '',
-        remark: '',
-        startPoint: null,
-        endPoint: null
+    // 跳转到管线配置页面
+    const navigateToPipelineConfig = () => {
+      console.log('准备跳转到管线配置页面');
+      console.log('选中的点位:', selectedPoints.value);
+      
+      if (selectedPoints.value.length !== 2) {
+        uni.showToast({
+          title: '请先选择两个点位',
+          icon: 'none'
+        });
+        return;
+      }
+      
+      const startPointData = encodeURIComponent(JSON.stringify(selectedPoints.value[0]))
+      const endPointData = encodeURIComponent(JSON.stringify(selectedPoints.value[1]))
+      
+      console.log('传递的起点数据:', selectedPoints.value[0]);
+      console.log('传递的终点数据:', selectedPoints.value[1]);
+      
+      uni.navigateTo({
+        url: `/pages/collect/pipeline-config?startPoint=${startPointData}&endPoint=${endPointData}`
       })
     }
 
-    //创建管线
-    const saveLine = () => {
-      if (!lineForm.type) {
+    // 添加管线到地图（从配置页面返回时调用）
+    const addPipeline = (pipelineData) => {
+      console.log('接收到管线数据:', pipelineData)
+      
+      if (!pipelineData.startPointData || !pipelineData.endPointData) {
+        console.error('缺少点位数据:', pipelineData);
         uni.showToast({
-          title: '请选择管线类型',
+          title: '数据错误，无法创建管线',
           icon: 'none'
-        })
-        return
+        });
+        return;
       }
-      const newLine = {
-        points: [lineForm.startPoint, lineForm.endPoint],
-        color: getLineColor(lineForm.type),
-        width: 4,
-        data: { ...lineForm }
+      
+      // 创建红色带箭头的管线
+      const newPipeline = {
+        points: [
+          {
+            longitude: pipelineData.startPointData.longitude,
+            latitude: pipelineData.startPointData.latitude
+          },
+          {
+            longitude: pipelineData.endPointData.longitude,
+            latitude: pipelineData.endPointData.latitude
+          }
+        ],
+        color: '#FF0000', // 红色
+        width: 6,
+        dottedLine: false, // 实线
+        arrowLine: true, // 显示箭头（如果支持的话）
+        data: pipelineData
       }
-      polylines.value.push(newLine)
-      closeLineModal()
+
+      console.log('创建的管线对象:', newPipeline);
+      
+      // 添加到地图
+      polylines.value.push(newPipeline)
+      
+      // 在终点添加箭头标记来表示方向
+      const arrowMarker = {
+        id: `arrow_${Date.now()}`,
+        longitude: pipelineData.endPointData.longitude,
+        latitude: pipelineData.endPointData.latitude,
+        iconPath: '/static/icons/arrow.png', // 需要一个箭头图标
+        width: 20,
+        height: 20,
+        rotate: calculateArrowRotation(
+          pipelineData.startPointData.latitude,
+          pipelineData.startPointData.longitude,
+          pipelineData.endPointData.latitude,
+          pipelineData.endPointData.longitude
+        )
+      }
+      
+      // 用红色圆点表示终点
+      const endPointMarker = {
+        id: `endpoint_${Date.now()}`,
+        longitude: pipelineData.endPointData.longitude,
+        latitude: pipelineData.endPointData.latitude,
+        iconPath: '/static/icons/red-dot.svg',
+        width: 12,
+        height: 12
+      }
+      
+      markers.value.push(endPointMarker)
+      
+      console.log('当前所有管线:', polylines.value);
+      console.log('添加了终点标记');
+
+      // 强制刷新地图数据
+      polylines.value = [...polylines.value]
+      markers.value = [...markers.value]
+
+      // 清除选中状态
+      selectedPoints.value.forEach(point => {
+        highlightMarker(point.id, false)
+      })
+      selectedPoints.value = []
+      currentTool.value = ''
+
       uni.showToast({
         title: '管线创建成功',
         icon: 'success'
       })
-    }
-
-    // 管线颜色选择
-    const getLineColor = (type) => {
-      const colors = {
-        '主管': '#2196F3',
-        '支管': '#4CAF50',
-        '接户管': '#FF9800',
-        '阀门': '#F44336',
-        '其他': '#9E9E9E'
-      }
-      return colors[type] || '#2196F3'
-    }
-
-
-
-    // 管线类型
-    const onLineTypeChange = (e) => {
-      lineTypeIndex.value = e.detail.value
-      lineForm.type = lineTypeOptions.value[e.detail.value]
-    }
-
-    // 管线材质选择
-    const onLineMaterialChange = (e) => {
-      lineMaterialIndex.value = e.detail.value
-      lineForm.material = materialOptions.value[e.detail.value]
     }
 
     // 清除测量结果
@@ -819,6 +862,25 @@ export default {
       })
     }
 
+    // 测试polyline功能
+    const testPolyline = () => {
+      const testLine = {
+        points: [
+          { longitude: 113.500428, latitude: 23.15923 },
+          { longitude: 113.500428, latitude: 23.15023 }
+        ],
+        color: '#FF0000',
+        width: 8,
+        dottedLine: false
+      }
+      polylines.value.push(testLine)
+      console.log('添加测试线条:', testLine)
+      uni.showToast({
+        title: '测试线条已添加',
+        icon: 'success'
+      })
+    }
+
     // 生命周期
     onMounted(() => {
       // 初始化数据
@@ -829,11 +891,47 @@ export default {
 
       // 检查定位权限并获取当前位置
       checkLocationPermission()
+
+      // 5秒后添加测试线条
+      setTimeout(() => {
+        testPolyline()
+      }, 5000)
+    })
+
+    // 页面显示时重新注册事件监听器
+    const onShow = () => {
+      // 先移除之前的监听器，避免重复注册
+      uni.$off('addPipePoint');
       
-      // 监听管点保存事件
+      // 重新监听管点保存事件
       uni.$on('addPipePoint', (pointData) => {
         console.log('接收到新管点数据:', pointData);
+        console.log('原始管点ID:', pointData.id, '(类型:', typeof pointData.id, ')');
+        
+        // 使用当前markers数组长度+1作为唯一ID，确保不重复
+        const uniqueId = markers.value.length + 1;
+        pointData.id = uniqueId;
+        pointData.markerId = uniqueId;
+        
+        console.log('处理后的管点数据:', {
+          id: pointData.id,
+          markerId: pointData.markerId,
+          title: pointData.title
+        });
+        
         markers.value.push(pointData);
+        console.log('添加后的markers数组:', markers.value.map(m => ({ 
+          id: m.id, 
+          markerId: m.markerId,
+          title: m.title 
+        })));
+        
+        // 调试：输出完整的marker数据结构
+        console.log('完整的marker数据结构:');
+        markers.value.forEach((marker, index) => {
+          console.log(`Marker ${index}:`, JSON.stringify(marker, null, 2));
+        });
+        
         // 强制更新地图组件
         markers.value = [...markers.value];
         uni.showToast({
@@ -841,7 +939,7 @@ export default {
           icon: 'success'
         });
       });
-    })
+    }
 
     // 检查网络状态
     const checkNetworkStatus = () => {
@@ -920,14 +1018,10 @@ export default {
       lineTypeIndex,
       lineMaterialIndex,
       layerOptions,
-      // materialOptions,
-      lineTypeOptions,
       mapCenter,
       showPointModal,
       showLineModal,
       showPipePointModal,
-      pointForm,
-      lineForm,
       measureResult,
       selectedPipePoint,
       markers,
@@ -935,6 +1029,10 @@ export default {
       polygons,
       tempPoints,
       measurePoints,
+      
+      // 管线相关数据
+      pipelineMode,
+      selectedPoints,
 
       // 方法
       toggleDropdown,
@@ -950,7 +1048,6 @@ export default {
       selectTool,
       onMapTap,
       getToolName,
-      // createAtCenter,
       onPoiTap,
       onCalloutTap,
       onControlTap,
@@ -960,18 +1057,11 @@ export default {
       handleMeasure,
       insertPoint,
       calculateDistance,
+      calculateArrowRotation,
       openPipeInfo,
       onMarkerTap,
       onRegionChange,
       closePointModal,
-      closeLineModal,
-      // closePipePointModal,
-      // savePoint,
-      saveLine,
-      getLineColor,
-      // onMaterialChange,
-      onLineTypeChange,
-      onLineMaterialChange,
       clearMeasure,
       closeMeasureResult,
       onMapError,
@@ -979,8 +1069,19 @@ export default {
       checkLocationPermission,
       getCurrentLocation,
       handleTapForCreation, // 添加新函数到返回对象
-      onUnmounted
+      onShow,
+      onUnmounted,
+      
+      // 管线相关方法
+      highlightMarker,
+      navigateToPipelineConfig,
+      addPipeline,
     }
+  },
+  
+  // 页面生命周期
+  onShow() {
+    this.onShow()
   }
 }
 </script>

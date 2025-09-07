@@ -265,8 +265,14 @@ export default {
 			
 			// 通过事件总线或全局状态管理传递数据到地图页面
 			// 使用uni.$emit发送事件，让地图页面监听并添加标记点
+			// 使用时间戳后6位 + 随机数确保唯一性
+			const timePart = Date.now() % 10000; // 后4位时间戳
+			const randomPart = Math.floor(Math.random() * 100); // 2位随机数
+			const markerId = timePart * 100 + randomPart;
+			
 			uni.$emit('addPipePoint', {
-				id: Date.now(),
+				id: markerId,
+				markerId: markerId,
 				longitude: this.longitude,
 				latitude: this.latitude,
 				title: this.formData.pointNumber,

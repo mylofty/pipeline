@@ -1,0 +1,384 @@
+<template>
+	<view class="container">
+		<view class="header">
+			<view class="header-left" @click="goBack">
+				<text class="back-icon">←</text>
+				<text class="back-text">返回</text>
+			</view>
+			<text class="header-title">管线信息</text>
+			<view class="header-right" @click="confirmConfig">
+				<text class="confirm-text">确定</text>
+			</view>
+		</view>
+		
+		<scroll-view class="content" scroll-y="true">
+			<view class="form-section">
+				<text class="section-title">基本信息</text>
+				
+				<view class="form-item">
+					<text class="label">类别</text>
+					<picker class="picker" :value="formData.categoryIndex" :range="categoryOptions" @change="onCategoryChange">
+						<view class="picker-text">
+							<text>{{categoryOptions[formData.categoryIndex]}}</text>
+							<text class="arrow">▼</text>
+						</view>
+					</picker>
+				</view>
+				
+				<view class="form-item">
+					<text class="label">起点号</text>
+					<input class="input" v-model="formData.startPoint" placeholder="请输入起点号" />
+				</view>
+				
+				<view class="form-item">
+					<text class="label">终点号</text>
+					<input class="input" v-model="formData.endPoint" placeholder="请输入终点号" />
+				</view>
+				
+				<view class="form-item">
+					<text class="label">流向</text>
+					<picker class="picker" :value="formData.directionIndex" :range="directionOptions" @change="onDirectionChange">
+						<view class="picker-text">
+							<text>{{directionOptions[formData.directionIndex]}}</text>
+							<text class="arrow">▼</text>
+						</view>
+					</picker>
+				</view>
+				
+				<view class="form-item">
+					<text class="label">录像编号</text>
+					<input class="input" v-model="formData.videoNumber" placeholder="请输入" />
+				</view>
+			</view>
+			
+			<view class="form-section">
+				<text class="section-title">管线参数</text>
+				
+				<view class="form-item">
+					<text class="label">起点埋深(米)</text>
+					<input class="input" v-model="formData.startDepth" placeholder="请输入" type="number" />
+				</view>
+				
+				<view class="form-item">
+					<text class="label">终点埋深(米)</text>
+					<input class="input" v-model="formData.endDepth" placeholder="请输入" type="number" />
+				</view>
+				
+				<view class="form-item">
+					<text class="label">埋设类型</text>
+					<picker class="picker" :value="formData.buryTypeIndex" :range="buryTypeOptions" @change="onBuryTypeChange">
+						<view class="picker-text">
+							<text>{{buryTypeOptions[formData.buryTypeIndex]}}</text>
+							<text class="arrow">▼</text>
+						</view>
+					</picker>
+				</view>
+				
+				<view class="form-item">
+					<text class="label">管线长度(米)</text>
+					<input class="input" v-model="formData.length" placeholder="16.00" type="number" />
+				</view>
+				
+				<view class="form-item">
+					<text class="label">管径</text>
+					<input class="input" v-model="formData.diameter" placeholder="请输入" />
+				</view>
+				
+				<view class="form-item">
+					<text class="label">材质</text>
+					<picker class="picker" :value="formData.materialIndex" :range="materialOptions" @change="onMaterialChange">
+						<view class="picker-text">
+							<text>{{materialOptions[formData.materialIndex]}}</text>
+							<text class="arrow">▼</text>
+						</view>
+					</picker>
+				</view>
+				
+				<view class="form-item">
+					<text class="label">权属单位</text>
+					<input class="input" v-model="formData.ownerUnit" placeholder="请输入" />
+				</view>
+			</view>
+			
+			<view class="form-section">
+				<text class="section-title">时间信息</text>
+				
+				<view class="form-item">
+					<text class="label">建设日期</text>
+					<picker class="picker" mode="date" :value="formData.buildDate" @change="onBuildDateChange">
+						<view class="picker-text">
+							<text>{{formData.buildDate || '2010-5-10'}}</text>
+							<text class="arrow">▼</text>
+						</view>
+					</picker>
+				</view>
+				
+				<view class="form-item">
+					<text class="label">调查日期</text>
+					<picker class="picker" mode="date" :value="formData.surveyDate" @change="onSurveyDateChange">
+						<view class="picker-text">
+							<text>{{formData.surveyDate || '2022-3-22'}}</text>
+							<text class="arrow">▼</text>
+						</view>
+					</picker>
+				</view>
+				
+				<view class="form-item">
+					<text class="label">市政办</text>
+					<input class="input" v-model="formData.municipalOffice" placeholder="请输入" />
+				</view>
+				
+				<view class="form-item">
+					<text class="label">所在道路</text>
+					<input class="input" v-model="formData.roadLocation" placeholder="请输入" />
+				</view>
+			</view>
+		</scroll-view>
+	</view>
+</template>
+
+<script>
+export default {
+	data() {
+		return {
+			formData: {
+				categoryIndex: 0,
+				startPoint: '',
+				endPoint: '',
+				directionIndex: 0,
+				videoNumber: '',
+				startDepth: '',
+				endDepth: '',
+				buryTypeIndex: 0,
+				length: '16.00',
+				diameter: '',
+				materialIndex: 0,
+				ownerUnit: '',
+				buildDate: '2010-5-10',
+				surveyDate: '2022-3-22',
+				municipalOffice: '',
+				roadLocation: ''
+			},
+			categoryOptions: ['雨水', '污水', '给水', '燃气', '热力', '电力', '通信'],
+			directionOptions: ['0', '1', '2'],
+			buryTypeOptions: ['管块', '直埋'],
+			materialOptions: ['塑料', '钢材', '混凝土', '铸铁'],
+			startPointData: null,
+			endPointData: null
+		}
+	},
+	onLoad(options) {
+		console.log('管线配置页面接收到的参数:', options);
+		// 接收传递的点位数据
+		if (options.startPoint) {
+			try {
+				this.startPointData = JSON.parse(decodeURIComponent(options.startPoint));
+				this.formData.startPoint = this.startPointData.title || this.startPointData.id || '';
+				console.log('起点数据:', this.startPointData);
+			} catch (e) {
+				console.error('解析起点数据失败:', e);
+			}
+		}
+		if (options.endPoint) {
+			try {
+				this.endPointData = JSON.parse(decodeURIComponent(options.endPoint));
+				this.formData.endPoint = this.endPointData.title || this.endPointData.id || '';
+				console.log('终点数据:', this.endPointData);
+			} catch (e) {
+				console.error('解析终点数据失败:', e);
+			}
+		}
+	},
+	methods: {
+		goBack() {
+			uni.navigateBack();
+		},
+		confirmConfig() {
+			console.log('确定按钮被点击');
+			console.log('当前表单数据:', this.formData);
+			console.log('起点数据:', this.startPointData);
+			console.log('终点数据:', this.endPointData);
+			
+			// 验证必填字段
+			if (!this.formData.startPoint || !this.formData.endPoint) {
+				uni.showToast({
+					title: '请填写起点号和终点号',
+					icon: 'none'
+				});
+				return;
+			}
+			
+			if (!this.startPointData || !this.endPointData) {
+				uni.showToast({
+					title: '缺少点位坐标数据',
+					icon: 'none'
+				});
+				return;
+			}
+			
+			// 构造管线数据
+			const pipelineData = {
+				...this.formData,
+				category: this.categoryOptions[this.formData.categoryIndex],
+				direction: this.directionOptions[this.formData.directionIndex],
+				buryType: this.buryTypeOptions[this.formData.buryTypeIndex],
+				material: this.materialOptions[this.formData.materialIndex],
+				startPointData: this.startPointData,
+				endPointData: this.endPointData
+			};
+			
+			console.log('构造的管线数据:', pipelineData);
+			
+			// 返回上一页并传递数据
+			const pages = getCurrentPages();
+			const prevPage = pages[pages.length - 2];
+			console.log('上一页对象:', prevPage);
+			
+			if (prevPage && prevPage.$vm && prevPage.$vm.addPipeline) {
+				prevPage.$vm.addPipeline(pipelineData);
+				uni.navigateBack();
+			} else {
+				console.error('无法找到上一页的addPipeline方法');
+				uni.showToast({
+					title: '页面通信失败',
+					icon: 'none'
+				});
+			}
+		},
+		onCategoryChange(e) {
+			this.formData.categoryIndex = e.detail.value;
+		},
+		onDirectionChange(e) {
+			this.formData.directionIndex = e.detail.value;
+		},
+		onBuryTypeChange(e) {
+			this.formData.buryTypeIndex = e.detail.value;
+		},
+		onMaterialChange(e) {
+			this.formData.materialIndex = e.detail.value;
+		},
+		onBuildDateChange(e) {
+			this.formData.buildDate = e.detail.value;
+		},
+		onSurveyDateChange(e) {
+			this.formData.surveyDate = e.detail.value;
+		}
+	}
+}
+</script>
+
+<style>
+.container {
+	flex: 1;
+	background-color: #f5f5f5;
+}
+
+.header {
+	height: 88rpx;
+	background-color: #007AFF;
+	flex-direction: row;
+	align-items: center;
+	justify-content: space-between;
+	padding-left: 30rpx;
+	padding-right: 30rpx;
+}
+
+.header-left {
+	flex-direction: row;
+	align-items: center;
+}
+
+.back-icon {
+	font-size: 36rpx;
+	color: #FFFFFF;
+	margin-right: 10rpx;
+}
+
+.back-text {
+	font-size: 32rpx;
+	color: #FFFFFF;
+}
+
+.header-title {
+	font-size: 36rpx;
+	color: #FFFFFF;
+	font-weight: bold;
+}
+
+.header-right {
+	
+}
+
+.confirm-text {
+	font-size: 32rpx;
+	color: #FFFFFF;
+}
+
+.content {
+	flex: 1;
+	padding: 20rpx;
+}
+
+.form-section {
+	background-color: #FFFFFF;
+	border-radius: 16rpx;
+	margin-bottom: 20rpx;
+	padding: 30rpx;
+}
+
+.section-title {
+	font-size: 32rpx;
+	color: #333333;
+	font-weight: bold;
+	margin-bottom: 30rpx;
+}
+
+.form-item {
+	flex-direction: row;
+	align-items: center;
+	margin-bottom: 30rpx;
+	min-height: 80rpx;
+}
+
+.label {
+	width: 200rpx;
+	font-size: 28rpx;
+	color: #666666;
+}
+
+.input {
+	flex: 1;
+	height: 80rpx;
+	border: 2rpx solid #E5E5E5;
+	border-radius: 8rpx;
+	padding-left: 20rpx;
+	padding-right: 20rpx;
+	font-size: 28rpx;
+	color: #333333;
+}
+
+.picker {
+	flex: 1;
+}
+
+.picker-text {
+	height: 80rpx;
+	border: 2rpx solid #E5E5E5;
+	border-radius: 8rpx;
+	padding-left: 20rpx;
+	padding-right: 20rpx;
+	flex-direction: row;
+	align-items: center;
+	justify-content: space-between;
+}
+
+.picker-text text:first-child {
+	font-size: 28rpx;
+	color: #333333;
+}
+
+.arrow {
+	font-size: 24rpx;
+	color: #999999;
+}
+</style>
