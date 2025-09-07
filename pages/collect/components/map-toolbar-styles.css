@@ -1,8 +1,8 @@
 .right-toolbar {
 	position: absolute;
-	right: 20px;
-	top: 20px;
-	width: 120px;
+	right: 20rpx;
+	top: 30rpx;
+	width: 200rpx;
 	height: 460vh;
 	background-color: white;
 	border-radius: 12px;

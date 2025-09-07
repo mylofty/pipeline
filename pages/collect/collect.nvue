@@ -58,11 +58,6 @@
         <div class="crosshair-vertical"></div>
       </div>
 
-      <!-- 创建按钮 -->
-      <div class="create-btn" v-if="currentTool" @tap="createAtCenter">
-        <text class="create-text">在此创建{{ getToolName(currentTool) }}</text>
-      </div>
-
       <!-- 右侧工具栏组件 -->
       <MapToolbar 
         :currentTool="currentTool"
@@ -70,90 +65,6 @@
         @toggle-map-type="toggleMapType"
         @select-tool="selectTool"
       />
-    </div>
-
-    <!-- 管点信息弹窗 -->
-    <div class="pipe-point-modal" v-if="showPipePointModal" @click="closePipePointModal">
-      <div class="modal-content" @click.stop>
-        <div class="modal-header">
-          <text class="modal-title">管点信息</text>
-          <div class="close-btn" @click="closePipePointModal">
-            <text>×</text>
-          </div>
-        </div>
-        <div class="modal-body">
-          <div class="info-item">
-            <text class="label">管点编号：</text>
-            <div class="value-wrapper"><text class="value">{{ selectedPipePoint.id }}</text></div>
-          </div>
-          <div class="info-item">
-            <text class="label">管点类型：</text>
-            <div class="value-wrapper"><text class="value">{{ selectedPipePoint.type }}</text></div>
-          </div>
-          <div class="info-item">
-            <text class="label">管径：</text>
-            <div class="value-wrapper"><text class="value">{{ selectedPipePoint.diameter }}mm</text></div>
-          </div>
-          <div class="info-item">
-            <text class="label">材质：</text>
-            <div class="value-wrapper"><text class="value select">{{ selectedPipePoint.material }}</text></div>
-          </div>
-          <div class="info-item">
-            <text class="label">埋深：</text>
-            <div class="value-wrapper"><text class="value">{{ selectedPipePoint.depth }}m</text></div>
-          </div>
-          <div class="info-item">
-            <text class="label">状态：</text>
-            <div class="value-wrapper"><text class="value">{{ selectedPipePoint.status }}</text></div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- 管点属性弹窗 -->
-    <div class="point-modal" v-if="showPointModal" @click="closePointModal">
-      <div class="modal-content" @click.stop>
-        <div class="modal-header">
-          <text class="modal-title">管点属性</text>
-          <div class="close-btn" @click="closePointModal">
-            <text>×</text>
-          </div>
-        </div>
-        <div class="modal-body">
-          <div class="form-item">
-            <text class="label">点号：</text>
-            <input type="text" v-model="pointForm.pointNo" placeholder="请输入点号" class="form-input" />
-          </div>
-          <div class="form-item">
-            <text class="label">管径：</text>
-            <input type="number" v-model="pointForm.diameter" placeholder="请输入管径(mm)" class="form-input" />
-          </div>
-          <div class="form-item">
-            <text class="label">材质：</text>
-            <picker @change="onMaterialChange" :value="materialIndex" :range="materialOptions">
-              <div class="picker-display">
-                <text>{{ materialOptions[materialIndex] }}</text>
-              </div>
-            </picker>
-          </div>
-          <div class="form-item">
-            <text class="label">埋深：</text>
-            <input type="number" v-model="pointForm.depth" placeholder="请输入埋深(m)" class="form-input" />
-          </div>
-          <div class="form-item">
-            <text class="label">备注：</text>
-            <textarea v-model="pointForm.remark" placeholder="请输入备注信息" class="form-textarea"></textarea>
-          </div>
-        </div>
-        <div class="modal-footer">
-          <div class="cancel-btn" @click="closePointModal">
-            <text>取消</text>
-          </div>
-          <div class="confirm-btn" @click="savePoint">
-            <text>确定</text>
-          </div>
-        </div>
-      </div>
     </div>
 
     <!-- 管线属性弹窗 -->
@@ -165,7 +76,7 @@
             <text>×</text>
           </div>
         </div>
-        <div class="modal-body">
+        <div class="modal-body"> 
           <div class="form-item">
             <text class="label">管线类型：</text>
             <picker @change="onLineTypeChange" :value="lineTypeIndex" :range="lineTypeOptions">
@@ -255,15 +166,15 @@ export default {
       '通信管网'
     ])
 
-    // 材质选项
-    const materialOptions = ref([
-      'PE',
-      'PVC',
-      '铸铁',
-      '钢管',
-      '水泥管',
-      '其他'
-    ])
+    // // 材质选项
+    // const materialOptions = ref([
+    //   'PE',
+    //   'PVC',
+    //   '铸铁',
+    //   '钢管',
+    //   '水泥管',
+    //   '其他'
+    // ])
 
     // 管线类型选项
     const lineTypeOptions = ref([
@@ -553,34 +464,6 @@ export default {
       return toolNames[tool] || '元素';
     }
 
-    // 在地图中心创建元素
-    const createAtCenter = () => {
-      const longitude = mapCenter.longitude;
-      const latitude = mapCenter.latitude;
-
-      console.log('在地图中心创建:', longitude, latitude);
-
-      switch (currentTool.value) {
-        case 'point':
-          createPoint(longitude, latitude);
-          break;
-        case 'line':
-          handleLineCreation(longitude, latitude);
-          break;
-        case 'virtual':
-          createVirtualLine(longitude, latitude);
-          break;
-        case 'measure':
-          handleMeasure(longitude, latitude);
-          break;
-        case 'insert':
-          insertPoint(longitude, latitude);
-          break;
-        default:
-          break;
-      }
-    }
-
     // POI点击事件处理（处理地图上的兴趣点，如"东门"、"幼儿园"等）
     const onPoiTap = (e) => {
       console.log('POI点击事件:', e);
@@ -866,52 +749,6 @@ export default {
       })
     }
 
-    // 关闭管点信息弹窗
-    const closePipePointModal = () => {
-      showPipePointModal.value = false
-    }
-
-    // 创建管点
-    const savePoint = () => {
-      if (!pointForm.pointNo.trim()) {
-        uni.showToast({
-          title: '请输入点号',
-          icon: 'none'
-        })
-        return
-      }
-
-      const newMarker = {
-        id: Date.now(),
-        longitude: pointForm.longitude,
-        latitude: pointForm.latitude,
-        title: pointForm.pointNo,
-        iconPath: '/static/icons/pipe-point-backup.svg',
-        width: 32,
-        height: 32,
-        callout: {
-          content: pointForm.pointNo,
-          color: '#000000',
-          fontSize: 12,
-          borderRadius: 4,
-          bgColor: '#ffffff',
-          padding: 6,
-          display: 'ALWAYS'
-        },
-        data: { ...pointForm }
-      }
-
-      markers.value.push(newMarker)
-      // 强制更新地图组件
-      markers.value = [...markers.value]
-      closePointModal()
-
-      uni.showToast({
-        title: '管点创建成功',
-        icon: 'success'
-      })
-    }
-
     //创建管线
     const saveLine = () => {
       if (!lineForm.type) {
@@ -947,11 +784,7 @@ export default {
       return colors[type] || '#2196F3'
     }
 
-    // 管点材质选择
-    const onMaterialChange = (e) => {
-      materialIndex.value = e.detail.value
-      pointForm.material = materialOptions.value[e.detail.value]
-    }
+
 
     // 管线类型
     const onLineTypeChange = (e) => {
@@ -1087,7 +920,7 @@ export default {
       lineTypeIndex,
       lineMaterialIndex,
       layerOptions,
-      materialOptions,
+      // materialOptions,
       lineTypeOptions,
       mapCenter,
       showPointModal,
@@ -1117,7 +950,7 @@ export default {
       selectTool,
       onMapTap,
       getToolName,
-      createAtCenter,
+      // createAtCenter,
       onPoiTap,
       onCalloutTap,
       onControlTap,
@@ -1132,11 +965,11 @@ export default {
       onRegionChange,
       closePointModal,
       closeLineModal,
-      closePipePointModal,
-      savePoint,
+      // closePipePointModal,
+      // savePoint,
       saveLine,
       getLineColor,
-      onMaterialChange,
+      // onMaterialChange,
       onLineTypeChange,
       onLineMaterialChange,
       clearMeasure,

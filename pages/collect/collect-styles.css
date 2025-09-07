@@ -178,8 +178,8 @@
 
 .location-btn {
 	position: fixed;
-	left: 20px;
-	bottom: 150px;
+	left: 20rpx;
+	bottom: 150rpx;
 	width: 60px;
 	height: 60px;
 	background-color: #4CAF50;
