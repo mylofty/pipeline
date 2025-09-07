@@ -123,8 +123,8 @@ export default {
 
     // 地图中心点
     const mapCenter = reactive({
-      longitude: 116.397428,
-      latitude: 39.90923
+      longitude: 113.49815398004169,
+      latitude: 23.15523741570118
     })
 
     // 弹窗显示状态
@@ -506,8 +506,8 @@ export default {
       const markerIndex = markers.value.findIndex(m => m.id === markerId)
       if (markerIndex > -1) {
         markers.value[markerIndex].iconPath = highlight 
-          ? '/static/icons/pipe-point.svg' 
-          : '/static/icons/point.svg'
+          ? '/static/icons/pipe-point.png' 
+          : '/static/icons/point.png'
         // 改变标记点的大小来表示选中状态
         markers.value[markerIndex].width = highlight ? 40 : 30
         markers.value[markerIndex].height = highlight ? 40 : 30
@@ -769,7 +769,7 @@ export default {
         return;
       }
       
-      // 创建红色带箭头的管线
+      // 创建红色管线（不带箭头属性，因为uni-app不支持）
       const newPipeline = {
         points: [
           {
@@ -784,7 +784,6 @@ export default {
         color: '#FF0000', // 红色
         width: 6,
         dottedLine: false, // 实线
-        arrowLine: true, // 显示箭头（如果支持的话）
         data: pipelineData
       }
 
@@ -793,33 +792,34 @@ export default {
       // 添加到地图
       polylines.value.push(newPipeline)
       
-      // 在终点添加箭头标记来表示方向
+      // 计算箭头位置（在终点前一小段距离）
+      const startLat = pipelineData.startPointData.latitude
+      const startLng = pipelineData.startPointData.longitude
+      const endLat = pipelineData.endPointData.latitude
+      const endLng = pipelineData.endPointData.longitude
+      
+      // 计算方向向量并在终点前放置箭头
+      const distance = 0.0001 // 箭头距离终点的距离
+      const bearing = calculateArrowRotation(startLat, startLng, endLat, endLng)
+      const arrowLat = endLat - distance * Math.cos(bearing * Math.PI / 180)
+      const arrowLng = endLng - distance * Math.sin(bearing * Math.PI / 180)
+      
+      // 创建箭头标记（看起来像线条的一部分）
       const arrowMarker = {
         id: `arrow_${Date.now()}`,
-        longitude: pipelineData.endPointData.longitude,
-        latitude: pipelineData.endPointData.latitude,
-        iconPath: '/static/icons/arrow.png', // 需要一个箭头图标
-        width: 20,
-        height: 20,
-        rotate: calculateArrowRotation(
-          pipelineData.startPointData.latitude,
-          pipelineData.startPointData.longitude,
-          pipelineData.endPointData.latitude,
-          pipelineData.endPointData.longitude
-        )
+        longitude: arrowLng,
+        latitude: arrowLat,
+        iconPath: '/static/icons/arrow.png',
+        width: 16,
+        height: 16,
+        rotate: bearing,
+        anchor: {
+          x: 0.5,
+          y: 0.5
+        }
       }
       
-      // 用红色圆点表示终点
-      const endPointMarker = {
-        id: `endpoint_${Date.now()}`,
-        longitude: pipelineData.endPointData.longitude,
-        latitude: pipelineData.endPointData.latitude,
-        iconPath: '/static/icons/red-dot.svg',
-        width: 12,
-        height: 12
-      }
-      
-      markers.value.push(endPointMarker)
+      markers.value.push(arrowMarker)
       
       console.log('当前所有管线:', polylines.value);
       console.log('添加了终点标记');
@@ -866,12 +866,14 @@ export default {
     const testPolyline = () => {
       const testLine = {
         points: [
-          { longitude: 113.500428, latitude: 23.15923 },
-          { longitude: 113.500428, latitude: 23.15023 }
+          { longitude: 113.49815398004169, latitude: 23.15523741570118 },
+          { longitude: 113.49925636792796, latitude: 23.153686206045506 }
         ],
-        color: '#FF0000',
+        // color: '#FF0000',
         width: 8,
-        dottedLine: false
+        dottedLine: false,
+        // arrowIconPath: '/static/icons/arrow.png', // 箭头图标路径
+		arrowLine: true,
       }
       polylines.value.push(testLine)
       console.log('添加测试线条:', testLine)
@@ -879,6 +881,37 @@ export default {
         title: '测试线条已添加',
         icon: 'success'
       })
+	  // 计算箭头位置（在终点前一小段距离）
+	  const startLat = testLine['points'][0].latitude
+	  const startLng = testLine['points'][0].longitude
+	  const endLat = testLine['points'][1].latitude
+	  const endLng = testLine['points'][1].longitude
+	  
+	  // 计算方向向量并在终点前放置箭头
+	  const distance = 0.0001 // 箭头距离终点的距离
+	  const bearing = calculateArrowRotation(startLat, startLng, endLat, endLng)
+	  const arrowLat = endLat - distance * Math.cos(bearing * Math.PI / 180)
+	  const arrowLng = endLng - distance * Math.sin(bearing * Math.PI / 180)
+	  
+	  // 创建箭头标记（看起来像线条的一部分）
+	  const arrowMarker = {
+	    id: `arrow_${Date.now()}`,
+	    longitude: arrowLng,
+	    latitude: arrowLat,
+	    iconPath: '/static/icons/arrow.png',
+	    width: 16,
+	    height: 16,
+	    rotate: bearing,
+	    anchor: {
+	      x: 0.5,
+	      y: 0.5
+	    }
+	  }
+	  
+	  markers.value.push(arrowMarker)
+	  // 强制刷新地图数据
+	  polylines.value = [...polylines.value]
+	  markers.value = [...markers.value]
     }
 
     // 生命周期
@@ -895,7 +928,7 @@ export default {
       // 5秒后添加测试线条
       setTimeout(() => {
         testPolyline()
-      }, 5000)
+      }, 3000)
     })
 
     // 页面显示时重新注册事件监听器
