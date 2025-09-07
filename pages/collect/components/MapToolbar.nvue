@@ -1,0 +1,108 @@
+<template>
+	<view class="right-toolbar">
+		<!-- 影像/矢量切换 -->
+		<view class="tool-section">
+			<view 
+				class="tool-btn map-type-btn" 
+				:class="{ active: mapType === 'satellite' }"
+				@click="onToggleMapType"
+			>
+				<view class="tool-icon">
+					<text>🛰️</text>
+				</view>
+				<view class="tool-text">
+					<text>{{ mapType === 'satellite' ? '影像' : '矢量' }}</text>
+				</view>
+			</view>
+		</view>
+
+		<!-- 创建工具集 -->
+		<view class="tool-section">
+			<view class="section-title">
+				<text>创建工具</text>
+			</view>
+			<view 
+				v-for="tool in createTools"
+				:key="tool.value"
+				class="tool-btn" 
+				:class="{ active: currentTool === tool.value }"
+				@click="onSelectTool(tool.value)"
+			>
+				<view class="tool-icon">
+					<text>{{ tool.icon }}</text>
+				</view>
+				<view class="tool-text">
+					<text>{{ tool.label }}</text>
+				</view>
+			</view>
+		</view>
+
+		<!-- 编辑工具集 -->
+		<view class="tool-section">
+			<view class="section-title">
+				<text>编辑工具</text>
+			</view>
+			<view 
+				v-for="tool in editTools"
+				:key="tool.value"
+				class="tool-btn" 
+				:class="{ active: currentTool === tool.value }"
+				@click="onSelectTool(tool.value)"
+			>
+				<view class="tool-icon">
+					<text>{{ tool.icon }}</text>
+				</view>
+				<view class="tool-text">
+					<text>{{ tool.label }}</text>
+				</view>
+			</view>
+		</view>
+	</view>
+</template>
+
+<script>
+export default {
+	name: 'MapToolbar',
+	props: {
+		currentTool: {
+			type: String,
+			default: ''
+		},
+		mapType: {
+			type: String,
+			default: 'vector'
+		}
+	},
+	data() {
+		return {
+			createTools: [
+				{ value: 'point', label: '管点', icon: '📍' },
+				{ value: 'line', label: '管线', icon: '📏' },
+				{ value: 'virtual', label: '虚拟线', icon: '⚡' },
+				{ value: 'shared', label: '共管', icon: '🔗' },
+				{ value: 'insert', label: '插入', icon: '➕' },
+				{ value: 'collect', label: '收点', icon: '✅' }
+			],
+			editTools: [
+				{ value: 'edit', label: '编辑', icon: '✏️' },
+				{ value: 'measure', label: '测量', icon: '📐' },
+				{ value: 'flow', label: '流向', icon: '🔄' },
+				{ value: 'move', label: '移动', icon: '🔄' },
+				{ value: 'delete', label: '删除', icon: '🗑️' }
+			]
+		}
+	},
+	methods: {
+		onToggleMapType() {
+			this.$emit('toggle-map-type');
+		},
+		onSelectTool(tool) {
+			this.$emit('select-tool', tool);
+		}
+	}
+}
+</script>
+
+<style scoped>
+@import './map-toolbar-styles.css';
+</style>

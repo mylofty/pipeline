@@ -1,0 +1,6 @@
+<svg width="32" height="32" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
+  <!-- 外圈 -->
+  <circle cx="16" cy="16" r="12" fill="none" stroke="#ff4444" stroke-width="4"/>
+  <!-- 内部白色填充，确保空心效果 -->
+  <circle cx="16" cy="16" r="8" fill="white"/>
+</svg>

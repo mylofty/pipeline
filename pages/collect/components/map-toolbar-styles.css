@@ -1,0 +1,74 @@
+.right-toolbar {
+	position: absolute;
+	right: 20px;
+	top: 20px;
+	width: 120px;
+	height: 460vh;
+	background-color: white;
+	border-radius: 12px;
+	box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+	z-index: 998;
+	pointer-events: auto;
+	overflow-y: auto;
+	display: flex;
+	flex-direction: column;
+}
+
+.tool-section {
+	border-bottom-width: 1px;
+	border-bottom-color: #f0f0f0;
+	border-bottom-style: solid;
+	flex-shrink: 0;
+}
+
+.section-title {
+	padding-top: 12px;
+	padding-bottom: 12px;
+	padding-left: 16px;
+	padding-right: 16px;
+	font-size: 16px;
+	color: #666;
+	background-color: #f8f8f8;
+	text-align: center;
+	font-weight: bold;
+}
+
+.tool-btn {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	padding-top: 6px;
+	padding-bottom: 6px;
+	padding-left: 8px;
+	padding-right: 8px;
+	transition-duration: 300ms;
+	transition-property: background-color;
+	pointer-events: auto;
+}
+
+.tool-btn:active {
+	background-color: #f0f0f0;
+}
+
+.active {
+	background-color: #e3f2fd;
+	color: #2196F3;
+}
+
+.map-type-btn.active {
+	background-color: #e8f5e8;
+	color: #4CAF50;
+}
+
+.tool-icon {
+	font-size: 18px;
+	margin-right: 6px;
+	flex-shrink: 0;
+}
+
+.tool-text {
+	font-size: 12px;
+	text-align: left;
+	line-height: 1.2;
+	flex: 1;
+}
