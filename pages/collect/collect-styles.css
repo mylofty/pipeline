@@ -135,7 +135,7 @@
 	align-items: center;
 	background-color: rgba(255,255,255,0.9);
 	border-radius: 8px;
-	padding: 8px;
+	/* padding: 8px; */
 	margin-left: 10px;
 }
 
@@ -145,13 +145,14 @@
 	border: none;
 	font-size: 16px;
 	color: #333;
-	padding: 8px 12px;
+	padding-left: 15rpx;
+	/* padding: 12rpx 10rpx; */
 }
 
 .search-btn {
 	width: 40px;
 	height: 40px;
-	background-color: #2196F3;
+	/* background-color: #2196F3; */
 	border-radius: 6px;
 	display: flex;
 	align-items: center;
@@ -182,8 +183,8 @@
 	bottom: 150rpx;
 	width: 60px;
 	height: 60px;
-	background-color: #4CAF50;
-	border-radius: 30px;
+	background-color: #2196F3;
+	border-radius: 50%;
 	display: flex;
 	align-items: center;
 	justify-content: center;
@@ -193,9 +194,9 @@
 }
 
 .location-text {
-	font-size: 24px;
+	font-size: 16px;
 	color: white;
-	font-weight: bold;
+	/* font-weight: bold; */
 }
 
 .map-crosshair {
