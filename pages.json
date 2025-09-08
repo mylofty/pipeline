@@ -30,7 +30,8 @@
 		{
 			"path": "pages/collect/pipeline-config",
 			"style": {
-				"navigationBarTitleText": "管线配置"
+				"navigationBarTitleText": "管线配置",
+				"navigationStyle": "custom"
 			}
 		},
 		{
