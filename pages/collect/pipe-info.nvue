@@ -156,17 +156,18 @@
 						</view>
 					</view>
 				</view>
-				
+
 				<!-- 附件列表 -->
 				<view class="attachment-list" v-if="attachments.length > 0">
 					<view class="attachment-item" v-for="(item, index) in attachments" :key="index">
-						<image class="attachment-image" :src="item.url" mode="aspectFill" @click="previewImage(item.url)"></image>
+						<image class="attachment-image" :src="item.url" mode="aspectFill"
+							@click="previewImage(item.url)"></image>
 						<view class="delete-btn" @click="deleteAttachment(index)">
 							<text class="delete-icon">×</text>
 						</view>
 					</view>
 				</view>
-				
+
 				<!-- 空状态 -->
 				<view class="empty-state" v-if="attachments.length === 0">
 					<text class="empty-text">暂无附件，点击右上角按钮添加</text>
@@ -181,504 +182,505 @@
 </template>
 
 <script>
-export default {
-	data() {
-		return {
-			activeTab: 'basic',
-			showPicker: false,
-			currentPickerType: '',
-			pickerData: [],
-			longitude: 0,
-			latitude: 0,
-			attachments: [],
-			formData: {
-				category: '雨水',
-				pointNumber: '',
-				pointType: '实点',
-				feature: '',
-				attachment: '',
-				isNetworked: '',
-				coverType: '',
-				plateNumber: '',
-				internalCheck: '',
-				externalCheck: '',
-				depth: '',
-				road: '',
-				coverMaterial: '',
-				coverCategory: '',
-				coverSpec: ''
-			},
-			// 选择器数据
-			categoryOptions: ['雨水', '污水', '合流'],
-			pointTypeOptions: ['实点', '虚点'],
-			featureOptions: ['正常', '破损', '缺失'],
-			attachmentOptions: ['无', '雨篦子', '检查井'],
-			networkOptions: ['是', '否'],
-			coverTypeOptions: ['圆形', '方形', '矩形'],
-			internalCheckOptions: ['正常', '异常'],
-			externalCheckOptions: ['正常', '异常'],
-			coverMaterialOptions: ['铸铁', '水泥', '复合材料']
-		}
-	},
-	onLoad(options) {
-		// 接收地图传递的坐标信息
-		if (options.longitude && options.latitude) {
-			this.longitude = parseFloat(options.longitude);
-			this.latitude = parseFloat(options.latitude);
-			// 可以根据坐标自动填充一些信息，比如物探点号
-			this.formData.pointNumber = `1YS${Date.now().toString().slice(-3)}`;
-		}
-	},
-	methods: {
-		// 切换标签页
-		switchTab(tab) {
-			this.activeTab = tab;
-		},
-		
-		// 返回
-		goBack() {
-			uni.navigateBack();
-		},
-		
-		// 保存信息
-		saveInfo() {
-			// 验证必填字段
-			if (!this.formData.pointNumber) {
-				uni.showToast({
-					title: '请输入物探点号',
-					icon: 'none'
-				});
-				return;
+	export default {
+		data() {
+			return {
+				activeTab: 'basic',
+				showPicker: false,
+				currentPickerType: '',
+				pickerData: [],
+				longitude: 0,
+				latitude: 0,
+				attachments: [],
+				formData: {
+					category: '雨水',
+					pointNumber: '',
+					pointType: '实点',
+					feature: '',
+					attachment: '',
+					isNetworked: '',
+					coverType: '',
+					plateNumber: '',
+					internalCheck: '',
+					externalCheck: '',
+					depth: '',
+					road: '',
+					coverMaterial: '',
+					coverCategory: '',
+					coverSpec: ''
+				},
+				// 选择器数据
+				categoryOptions: ['雨水', '污水', '合流'],
+				pointTypeOptions: ['实点', '虚点'],
+				featureOptions: ['正常', '破损', '缺失'],
+				attachmentOptions: ['无', '雨篦子', '检查井'],
+				networkOptions: ['是', '否'],
+				coverTypeOptions: ['圆形', '方形', '矩形'],
+				internalCheckOptions: ['正常', '异常'],
+				externalCheckOptions: ['正常', '异常'],
+				coverMaterialOptions: ['铸铁', '水泥', '复合材料']
 			}
-			
-			// 保存数据逻辑
-			const pipeInfo = {
-				...this.formData,
-				longitude: this.longitude,
-				latitude: this.latitude,
-				attachments: this.attachments,
-				createTime: new Date().toISOString()
-			};
-			
-			// 这里可以调用API保存数据
-			console.log('保存管点信息:', pipeInfo);
-			
-			// 通过事件总线或全局状态管理传递数据到地图页面
-			// 使用uni.$emit发送事件，让地图页面监听并添加标记点
-			// 使用时间戳后6位 + 随机数确保唯一性
-			const timePart = Date.now() % 10000; // 后4位时间戳
-			const randomPart = Math.floor(Math.random() * 100); // 2位随机数
-			const markerId = timePart * 100 + randomPart;
-			
-			uni.$emit('addPipePoint', {
-				id: markerId,
-				markerId: markerId,
-				longitude: this.longitude,
-				latitude: this.latitude,
-				title: this.formData.pointNumber,
-				iconPath: '/static/icons/pipe-point-backup.svg',
-				width: 32,
-				height: 32,
-				callout: {
-					content: this.formData.pointNumber,
-					color: '#000000',
-					fontSize: 12,
-					borderRadius: 4,
-					bgColor: '#ffffff',
-					padding: 6,
-					display: 'ALWAYS'
-				},
-				data: pipeInfo
-			});
-			
-			uni.showToast({
-				title: '保存成功',
-				icon: 'success'
-			});
-			
-			// 返回上一页
-			setTimeout(() => {
+		},
+		onLoad(options) {
+			// 接收地图传递的坐标信息
+			if (options.longitude && options.latitude) {
+				this.longitude = parseFloat(options.longitude);
+				this.latitude = parseFloat(options.latitude);
+				// 可以根据坐标自动填充一些信息，比如物探点号
+				this.formData.pointNumber = `1YS${Date.now().toString().slice(-3)}`;
+			}
+		},
+		methods: {
+			// 切换标签页
+			switchTab(tab) {
+				this.activeTab = tab;
+			},
+
+			// 返回
+			goBack() {
 				uni.navigateBack();
-			}, 1500);
-		},
-		
-		// 显示类别选择器
-		showCategoryPicker() {
-			this.currentPickerType = 'category';
-			this.pickerData = this.categoryOptions;
-			this.showPicker = true;
-		},
-		
-		// 显示管点种类选择器
-		showPointTypePicker() {
-			this.currentPickerType = 'pointType';
-			this.pickerData = this.pointTypeOptions;
-			this.showPicker = true;
-		},
-		
-		// 显示特征选择器
-		showFeaturePicker() {
-			this.currentPickerType = 'feature';
-			this.pickerData = this.featureOptions;
-			this.showPicker = true;
-		},
-		
-		// 显示附属物选择器
-		showAttachmentPicker() {
-			this.currentPickerType = 'attachment';
-			this.pickerData = this.attachmentOptions;
-			this.showPicker = true;
-		},
-		
-		// 显示是否挂网选择器
-		showNetworkPicker() {
-			this.currentPickerType = 'isNetworked';
-			this.pickerData = this.networkOptions;
-			this.showPicker = true;
-		},
-		
-		// 显示井盖类型选择器
-		showCoverTypePicker() {
-			this.currentPickerType = 'coverType';
-			this.pickerData = this.coverTypeOptions;
-			this.showPicker = true;
-		},
-		
-		// 显示内部检查选择器
-		showInternalCheckPicker() {
-			this.currentPickerType = 'internalCheck';
-			this.pickerData = this.internalCheckOptions;
-			this.showPicker = true;
-		},
-		
-		// 显示外部检查选择器
-		showExternalCheckPicker() {
-			this.currentPickerType = 'externalCheck';
-			this.pickerData = this.externalCheckOptions;
-			this.showPicker = true;
-		},
-		
-		// 显示井盖材质选择器
-		showCoverMaterialPicker() {
-			this.currentPickerType = 'coverMaterial';
-			this.pickerData = this.coverMaterialOptions;
-			this.showPicker = true;
-		},
-		
-		// 选择器选择事件
-		onPickerChange(e) {
-			const index = e.detail.value;
-			const value = this.pickerData[index];
-			this.formData[this.currentPickerType] = value;
-			this.hidePicker();
-		},
-		
-		// 隐藏选择器
-		hidePicker() {
-			this.showPicker = false;
-			this.currentPickerType = '';
-			this.pickerData = [];
-		},
-		
-		// 从相册选择图片
-		selectFromAlbum() {
-			uni.chooseImage({
-				count: 9,
-				sizeType: ['original', 'compressed'],
-				sourceType: ['album'],
-				success: (res) => {
-					res.tempFilePaths.forEach(path => {
-						this.attachments.push({
-							url: path,
-							type: 'image',
-							name: `图片${this.attachments.length + 1}`
+			},
+
+			// 保存信息
+			saveInfo() {
+				// 验证必填字段
+				if (!this.formData.pointNumber) {
+					uni.showToast({
+						title: '请输入物探点号',
+						icon: 'none'
+					});
+					return;
+				}
+
+				// 保存数据逻辑
+				const pipeInfo = {
+					...this.formData,
+					longitude: this.longitude,
+					latitude: this.latitude,
+					attachments: this.attachments,
+					createTime: new Date().toISOString()
+				};
+
+				// 这里可以调用API保存数据
+				console.log('保存管点信息:', pipeInfo);
+
+				// 通过事件总线或全局状态管理传递数据到地图页面
+				// 使用uni.$emit发送事件，让地图页面监听并添加标记点
+				// 使用时间戳后6位 + 随机数确保唯一性
+				const timePart = Date.now() % 10000; // 后4位时间戳
+				const randomPart = Math.floor(Math.random() * 100); // 2位随机数
+				const markerId = timePart * 100 + randomPart;
+
+				uni.$emit('addPipePoint', {
+					id: markerId,
+					markerId: markerId,
+					longitude: this.longitude,
+					latitude: this.latitude,
+					title: this.formData.pointNumber,
+					iconPath: '/static/icons/pipe-point-backup.svg',
+					width: 32,
+					height: 32,
+					callout: {
+						content: this.formData.pointNumber,
+						color: '#000000',
+						fontSize: 12,
+						borderRadius: 4,
+						bgColor: '#ffffff',
+						padding: 6,
+						display: 'ALWAYS'
+					},
+					data: pipeInfo
+				});
+
+				uni.showToast({
+					title: '保存成功',
+					icon: 'success'
+				});
+
+				// 返回上一页
+				setTimeout(() => {
+					uni.navigateBack();
+				}, 1500);
+			},
+
+			// 显示类别选择器
+			showCategoryPicker() {
+				this.currentPickerType = 'category';
+				this.pickerData = this.categoryOptions;
+				this.showPicker = true;
+			},
+
+			// 显示管点种类选择器
+			showPointTypePicker() {
+				this.currentPickerType = 'pointType';
+				this.pickerData = this.pointTypeOptions;
+				this.showPicker = true;
+			},
+
+			// 显示特征选择器
+			showFeaturePicker() {
+				this.currentPickerType = 'feature';
+				this.pickerData = this.featureOptions;
+				this.showPicker = true;
+			},
+
+			// 显示附属物选择器
+			showAttachmentPicker() {
+				this.currentPickerType = 'attachment';
+				this.pickerData = this.attachmentOptions;
+				this.showPicker = true;
+			},
+
+			// 显示是否挂网选择器
+			showNetworkPicker() {
+				this.currentPickerType = 'isNetworked';
+				this.pickerData = this.networkOptions;
+				this.showPicker = true;
+			},
+
+			// 显示井盖类型选择器
+			showCoverTypePicker() {
+				this.currentPickerType = 'coverType';
+				this.pickerData = this.coverTypeOptions;
+				this.showPicker = true;
+			},
+
+			// 显示内部检查选择器
+			showInternalCheckPicker() {
+				this.currentPickerType = 'internalCheck';
+				this.pickerData = this.internalCheckOptions;
+				this.showPicker = true;
+			},
+
+			// 显示外部检查选择器
+			showExternalCheckPicker() {
+				this.currentPickerType = 'externalCheck';
+				this.pickerData = this.externalCheckOptions;
+				this.showPicker = true;
+			},
+
+			// 显示井盖材质选择器
+			showCoverMaterialPicker() {
+				this.currentPickerType = 'coverMaterial';
+				this.pickerData = this.coverMaterialOptions;
+				this.showPicker = true;
+			},
+
+			// 选择器选择事件
+			onPickerChange(e) {
+				const index = e.detail.value;
+				const value = this.pickerData[index];
+				this.formData[this.currentPickerType] = value;
+				this.hidePicker();
+			},
+
+			// 隐藏选择器
+			hidePicker() {
+				this.showPicker = false;
+				this.currentPickerType = '';
+				this.pickerData = [];
+			},
+
+			// 从相册选择图片
+			selectFromAlbum() {
+				uni.chooseImage({
+					count: 9,
+					sizeType: ['original', 'compressed'],
+					sourceType: ['album'],
+					success: (res) => {
+						res.tempFilePaths.forEach(path => {
+							this.attachments.push({
+								url: path,
+								type: 'image',
+								name: `图片${this.attachments.length + 1}`
+							});
 						});
-					});
-					uni.showToast({
-						title: `已添加${res.tempFilePaths.length}张图片`,
-						icon: 'success'
-					});
-				},
-				fail: (err) => {
-					console.error('选择图片失败:', err);
-					uni.showToast({
-						title: '选择图片失败',
-						icon: 'none'
-					});
-				}
-			});
-		},
-		
-		// 拍照
-		takePhoto() {
-			uni.chooseImage({
-				count: 1,
-				sizeType: ['original', 'compressed'],
-				sourceType: ['camera'],
-				success: (res) => {
-					this.attachments.push({
-						url: res.tempFilePaths[0],
-						type: 'image',
-						name: `拍照${this.attachments.length + 1}`
-					});
-					uni.showToast({
-						title: '拍照成功',
-						icon: 'success'
-					});
-				},
-				fail: (err) => {
-					console.error('拍照失败:', err);
-					uni.showToast({
-						title: '拍照失败',
-						icon: 'none'
-					});
-				}
-			});
-		},
-		
-		// 预览图片
-		previewImage(url) {
-			const urls = this.attachments.map(item => item.url);
-			uni.previewImage({
-				urls: urls,
-				current: url
-			});
-		},
-		
-		// 删除附件
-		deleteAttachment(index) {
-			uni.showModal({
-				title: '确认删除',
-				content: '确定要删除这个附件吗？',
-				success: (res) => {
-					if (res.confirm) {
-						this.attachments.splice(index, 1);
 						uni.showToast({
-							title: '删除成功',
+							title: `已添加${res.tempFilePaths.length}张图片`,
 							icon: 'success'
 						});
+					},
+					fail: (err) => {
+						console.error('选择图片失败:', err);
+						uni.showToast({
+							title: '选择图片失败',
+							icon: 'none'
+						});
 					}
-				}
-			});
+				});
+			},
+
+			// 拍照
+			takePhoto() {
+				uni.chooseImage({
+					count: 1,
+					sizeType: ['original', 'compressed'],
+					sourceType: ['camera'],
+					success: (res) => {
+						this.attachments.push({
+							url: res.tempFilePaths[0],
+							type: 'image',
+							name: `拍照${this.attachments.length + 1}`
+						});
+						uni.showToast({
+							title: '拍照成功',
+							icon: 'success'
+						});
+					},
+					fail: (err) => {
+						console.error('拍照失败:', err);
+						uni.showToast({
+							title: '拍照失败',
+							icon: 'none'
+						});
+					}
+				});
+			},
+
+			// 预览图片
+			previewImage(url) {
+				const urls = this.attachments.map(item => item.url);
+				uni.previewImage({
+					urls: urls,
+					current: url
+				});
+			},
+
+			// 删除附件
+			deleteAttachment(index) {
+				uni.showModal({
+					title: '确认删除',
+					content: '确定要删除这个附件吗？',
+					success: (res) => {
+						if (res.confirm) {
+							this.attachments.splice(index, 1);
+							uni.showToast({
+								title: '删除成功',
+								icon: 'success'
+							});
+						}
+					}
+				});
+			}
 		}
 	}
-}
 </script>
 
 <style>
-.container {
-	flex: 1;
-	background-color: #1890ff;
-}
+	.container {
+		flex: 1;
+		background-color: #1890ff;
+	}
 
-.header {
-	height: 88rpx;
-	background-color: #1890ff;
-	flex-direction: row;
-	align-items: center;
-	justify-content: space-between;
-	padding-left: 32rpx;
-	padding-right: 32rpx;
-	margin-top: 80rpx;
-}
+	.header {
+		height: 88rpx;
+		background-color: #1890ff;
+		flex-direction: row;
+		align-items: center;
+		justify-content: space-between;
+		padding-left: 32rpx;
+		padding-right: 32rpx;
+		/* 仅在Android平台显示 */
+		/* #ifdef APP-PLUS */
+		margin-top: 80rpx;
+		/* #endif */
+	}
 
-.header-left {
-	flex-direction: row;
-	align-items: center;
-}
+	.header-left {
+		flex-direction: row;
+		align-items: center;
+	}
 
-.back-icon {
-	font-size: 40rpx;
-	color: #ffffff;
-	margin-right: 16rpx;
-}
+	.back-icon {
+		font-size: 40rpx;
+		color: #ffffff;
+		margin-right: 16rpx;
+	}
 
-.back-text {
-	font-size: 32rpx;
-	color: #ffffff;
-}
+	.back-text {
+		font-size: 32rpx;
+		color: #ffffff;
+	}
 
-.header-title {
-	font-size: 36rpx;
-	color: #ffffff;
-	font-weight: 500;
-}
+	.header-title {
+		font-size: 36rpx;
+		color: #ffffff;
+		font-weight: 500;
+	}
 
-.header-right {
-	
-}
+	.header-right {}
 
-.save-text {
-	font-size: 32rpx;
-	color: #ffffff;
-}
+	.save-text {
+		font-size: 32rpx;
+		color: #ffffff;
+	}
 
-.tabs {
-	height: 88rpx;
-	background-color: #ffffff;
-	flex-direction: row;
-	border-bottom-width: 1rpx;
-	border-bottom-color: #e8e8e8;
-}
+	.tabs {
+		height: 88rpx;
+		background-color: #ffffff;
+		flex-direction: row;
+		border-bottom-width: 1rpx;
+		border-bottom-color: #e8e8e8;
+	}
 
-.tab-item {
-	flex: 1;
-	justify-content: center;
-	align-items: center;
-	position: relative;
-}
+	.tab-item {
+		flex: 1;
+		justify-content: center;
+		align-items: center;
+		position: relative;
+	}
 
-.tab-item.active .tab-text {
-	color: #1890ff;
-	font-weight: 500;
-}
+	.tab-item.active .tab-text {
+		color: #1890ff;
+		font-weight: 500;
+	}
 
-.tab-item.active::after {
-	content: '';
-	position: absolute;
-	bottom: 0;
-	left: 50%;
-	transform: translateX(-50%);
-	width: 60rpx;
-	height: 4rpx;
-	background-color: #1890ff;
-}
+	.tab-item.active::after {
+		content: '';
+		position: absolute;
+		bottom: 0;
+		left: 50%;
+		transform: translateX(-50%);
+		width: 60rpx;
+		height: 4rpx;
+		background-color: #1890ff;
+	}
 
-.tab-text {
-	font-size: 32rpx;
-	color: #666666;
-}
+	.tab-text {
+		font-size: 32rpx;
+		color: #666666;
+	}
 
-.content {
-	flex: 1;
-	padding: 0 20rpx;
-	background-color: #ffffff;
-}
+	.content {
+		flex: 1;
+		padding: 0 20rpx;
+		background-color: #ffffff;
+	}
 
-.form-item {
-	height: 100rpx;
-	background-color: #ffffff;
-	flex-direction: row;
-	align-items: center;
-	justify-content: space-between;
-	padding: 0 32rpx;
-	margin-bottom: 2rpx;
-	border-bottom-width: 1rpx;
-	border-bottom-color: #f0f0f0;
-}
+	.form-item {
+		height: 100rpx;
+		background-color: #ffffff;
+		flex-direction: row;
+		align-items: center;
+		justify-content: space-between;
+		padding: 0 32rpx;
+		margin-bottom: 2rpx;
+		border-bottom-width: 1rpx;
+		border-bottom-color: #f0f0f0;
+	}
 
-.label {
-	font-size: 32rpx;
-	color: #333333;
-	width: 200rpx;
-}
+	.label {
+		font-size: 32rpx;
+		color: #333333;
+		width: 200rpx;
+	}
 
-.input {
-	flex: 1;
-	font-size: 32rpx;
-	color: #333333;
-	text-align: right;
-}
+	.input {
+		flex: 1;
+		font-size: 32rpx;
+		color: #333333;
+		text-align: right;
+	}
 
-.select-wrapper {
-	flex: 1;
-	flex-direction: row;
-	align-items: center;
-	justify-content: flex-end;
-}
+	.select-wrapper {
+		flex: 1;
+		flex-direction: row;
+		align-items: center;
+		justify-content: flex-end;
+	}
 
-.select-text {
-	font-size: 32rpx;
-	color: #333333;
-	margin-right: 16rpx;
-}
+	.select-text {
+		font-size: 32rpx;
+		color: #333333;
+		margin-right: 16rpx;
+	}
 
-.arrow-icon {
-	font-size: 32rpx;
-	color: #cccccc;
-	transform: rotate(90deg);
-}
+	.arrow-icon {
+		font-size: 32rpx;
+		color: #cccccc;
+		transform: rotate(90deg);
+	}
 
-.attachment-section {
-	padding: 32rpx;
-}
+	.attachment-section {
+		padding: 32rpx;
+	}
 
-.attachment-header {
-	flex-direction: row;
-	justify-content: space-between;
-	align-items: center;
-	margin-bottom: 32rpx;
-}
+	.attachment-header {
+		flex-direction: row;
+		justify-content: space-between;
+		align-items: center;
+		margin-bottom: 32rpx;
+	}
 
-.attachment-title {
-	font-size: 32rpx;
-	color: #333333;
-	font-weight: 500;
-}
+	.attachment-title {
+		font-size: 32rpx;
+		color: #333333;
+		font-weight: 500;
+	}
 
-.attachment-actions {
-	flex-direction: row;
-}
+	.attachment-actions {
+		flex-direction: row;
+	}
 
-.action-btn {
-	width: 80rpx;
-	height: 80rpx;
-	background-color: #f5f5f5;
-	border-radius: 8rpx;
-	align-items: center;
-	justify-content: center;
-	margin-left: 16rpx;
-}
+	.action-btn {
+		width: 80rpx;
+		height: 80rpx;
+		background-color: #f5f5f5;
+		border-radius: 8rpx;
+		align-items: center;
+		justify-content: center;
+		margin-left: 16rpx;
+	}
 
-.action-icon {
-	font-size: 32rpx;
-}
+	.action-icon {
+		font-size: 32rpx;
+	}
 
-.attachment-list {
-	flex-direction: row;
-	flex-wrap: wrap;
-}
+	.attachment-list {
+		flex-direction: row;
+		flex-wrap: wrap;
+	}
 
-.attachment-item {
-	width: 200rpx;
-	height: 200rpx;
-	margin-right: 16rpx;
-	margin-bottom: 16rpx;
-	position: relative;
-}
+	.attachment-item {
+		width: 200rpx;
+		height: 200rpx;
+		margin-right: 16rpx;
+		margin-bottom: 16rpx;
+		position: relative;
+	}
 
-.attachment-image {
-	width: 200rpx;
-	height: 200rpx;
-	border-radius: 8rpx;
-}
+	.attachment-image {
+		width: 200rpx;
+		height: 200rpx;
+		border-radius: 8rpx;
+	}
 
-.delete-btn {
-	position: absolute;
-	top: -8rpx;
-	right: -8rpx;
-	width: 32rpx;
-	height: 32rpx;
-	background-color: #ff4d4f;
-	border-radius: 16rpx;
-	align-items: center;
-	justify-content: center;
-}
+	.delete-btn {
+		position: absolute;
+		top: -8rpx;
+		right: -8rpx;
+		width: 32rpx;
+		height: 32rpx;
+		background-color: #ff4d4f;
+		border-radius: 16rpx;
+		align-items: center;
+		justify-content: center;
+	}
 
-.delete-icon {
-	font-size: 20rpx;
-	color: #ffffff;
-	line-height: 32rpx;
-}
+	.delete-icon {
+		font-size: 20rpx;
+		color: #ffffff;
+		line-height: 32rpx;
+	}
 
-.empty-state {
-	padding: 100rpx 0;
-	align-items: center;
-	justify-content: center;
-}
+	.empty-state {
+		padding: 100rpx 0;
+		align-items: center;
+		justify-content: center;
+	}
 
-.empty-text {
-	font-size: 28rpx;
-	color: #999999;
-}
+	.empty-text {
+		font-size: 28rpx;
+		color: #999999;
+	}
 </style>
