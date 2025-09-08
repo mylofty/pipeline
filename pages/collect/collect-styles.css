@@ -115,6 +115,12 @@
 	border-color: #2196F3;
 }
 
+.partially-checked {
+	background-color: #FFC107;
+	border-color: #FFC107;
+	color: white;
+}
+
 .layer-name {
 	flex: 1;
 	font-size: 14px;
@@ -126,6 +132,52 @@
 	background-color: #e0e0e0;
 	margin-top: 4px;
 	margin-bottom: 4px;
+}
+
+/* 两级下拉框样式 */
+.category-group {
+	border-bottom-width: 1px;
+	border-bottom-color: #f0f0f0;
+	border-bottom-style: solid;
+}
+
+.category-item {
+	background-color: #f8f9fa;
+	font-weight: bold;
+}
+
+.category-name {
+	font-weight: bold;
+	color: #333;
+}
+
+.expand-arrow {
+	margin-left: auto;
+	font-size: 12px;
+	color: #666;
+	transition-duration: 300ms;
+	transition-property: transform;
+}
+
+.expand-arrow.expanded {
+	transform: rotate(180deg);
+}
+
+.subcategory-list {
+	background-color: #fff;
+}
+
+.subcategory-item {
+	padding-left: 30px;
+	background-color: #fff;
+	border-bottom-width: 1px;
+	border-bottom-color: #f5f5f5;
+	border-bottom-style: solid;
+}
+
+.sublayer-name {
+	font-size: 13px;
+	color: #555;
 }
 
 .search-container {

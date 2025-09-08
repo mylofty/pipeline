@@ -9,18 +9,34 @@
           <text class="arrow" :class="{ 'arrow-up': showDropdown }">▼</text>
         </div>
         <div class="dropdown" v-if="showDropdown" @click.stop>
-          <div class="dropdown-item select-all-item" @click="selectAll">
-            <text>全选</text>
+          <div class="dropdown-item select-all-item" @click="toggleSelectAll">
+            <text>{{ isAllSelected ? '全不选' : '全选' }}</text>
           </div>
-          <div class="dropdown-item select-all-item" @click="selectNone">
-            <text>全不选</text>
+          <div class="dropdown-item select-all-item" @click="toggleExpandAll">
+            <text>{{ isAllExpanded ? '全部收起' : '全部展开' }}</text>
           </div>
           <div class="dropdown-divider"></div>
-          <div class="dropdown-item" v-for="(item, index) in layerOptions" :key="index" @click="selectLayer(index)">
-            <div class="checkbox-wrapper">
-              <text class="checkbox" :class="{ checked: selectedLayers.includes(index) }">{{
-                selectedLayers.includes(index) ? '✓' : '' }}</text>
-              <text class="layer-name">{{ item }}</text>
+          <div v-for="(category, categoryIndex) in layerOptions" :key="categoryIndex" class="category-group">
+            <div class="dropdown-item category-item" @click="toggleCategory(categoryIndex)">
+              <div class="checkbox-wrapper">
+                <text class="checkbox" :class="{ 
+                  checked: isCategorySelected(categoryIndex),
+                  'partially-checked': isCategorySelected(categoryIndex) && !isCategoryFullySelected(categoryIndex)
+                }">{{
+                  isCategoryFullySelected(categoryIndex) ? '✓' : (isCategorySelected(categoryIndex) ? '◐' : '') }}</text>
+                <text class="layer-name category-name">{{ category.name }}</text>
+                <text class="expand-arrow" :class="{ expanded: category.expanded }">▼</text>
+              </div>
+            </div>
+            <div v-if="category.expanded" class="subcategory-list">
+              <div v-for="(child, childIndex) in category.children" :key="childIndex" 
+                   class="dropdown-item subcategory-item" @click="selectSubLayer(categoryIndex, childIndex)">
+                <div class="checkbox-wrapper">
+                  <text class="checkbox" :class="{ checked: child.selected }">{{
+                    child.selected ? '✓' : '' }}</text>
+                  <text class="layer-name sublayer-name">{{ child.name }}</text>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -113,12 +129,100 @@ export default {
 
     // 图层选项
     const layerOptions = ref([
-      '给水管网',
-      '排水管网',
-      '燃气管网',
-      '热力管网',
-      '电力管网',
-      '通信管网'
+      {
+        id: 'drainage',
+        name: '排水',
+        expanded: true,
+        children: [
+          { id: 'rainwater', name: '雨水', selected: true },
+          { id: 'sewage', name: '污水', selected: true },
+          { id: 'combined', name: '合流', selected: true }
+        ]
+      },
+      {
+        id: 'water_supply',
+        name: '给水',
+        expanded: true,
+        children: [
+          { id: 'domestic_water', name: '生活给水', selected: true },
+          { id: 'industrial_water', name: '工业给水', selected: true },
+          { id: 'fire_water', name: '消防给水', selected: true }
+        ]
+      },
+      {
+        id: 'gas',
+        name: '燃气',
+        expanded: true,
+        children: [
+          { id: 'lpg', name: '液化气', selected: true },
+          { id: 'natural_gas', name: '天然气', selected: true },
+          { id: 'coal_gas', name: '煤气', selected: true }
+        ]
+      },
+      {
+        id: 'power',
+        name: '电力',
+        expanded: true,
+        children: [
+          { id: 'street_light', name: '路灯', selected: true },
+          { id: 'traffic_light', name: '交通信号灯', selected: true },
+          { id: 'power_supply', name: '供电', selected: true }
+        ]
+      },
+      {
+        id: 'telecom',
+        name: '通讯',
+        expanded: true,
+        children: [
+          { id: 'china_telecom', name: '中国电信', selected: true },
+          { id: 'china_mobile', name: '中国移动', selected: true },
+          { id: 'china_unicom', name: '中国联通', selected: true },
+          { id: 'china_jitong', name: '中国吉通', selected: true },
+          { id: 'china_netcom', name: '中国网通', selected: true },
+          { id: 'monitoring', name: '监控信号', selected: true },
+          { id: 'military', name: '军用', selected: true },
+          { id: 'classified', name: '保密', selected: true },
+          { id: 'power_comm', name: '电力通信', selected: true },
+          { id: 'broadband', name: '宽带', selected: true },
+          { id: 'other_telecom', name: '其他电信', selected: true },
+          { id: 'tv', name: '电视', selected: true },
+          { id: 'radio', name: '广播', selected: true }
+        ]
+      },
+      {
+        id: 'heating',
+        name: '热力',
+        expanded: true,
+        children: [
+          { id: 'heating', name: '热力', selected: true }
+        ]
+      },
+      {
+        id: 'industrial',
+        name: '工业',
+        expanded: true,
+        children: [
+          { id: 'wastewater', name: '废水', selected: true },
+          { id: 'oil', name: '石油', selected: true },
+          { id: 'fire_foam', name: '消防泡沫', selected: true }
+        ]
+      },
+      {
+        id: 'comprehensive',
+        name: '综合管沟',
+        expanded: true,
+        children: [
+          { id: 'comprehensive_tunnel', name: '综合管沟', selected: true }
+        ]
+      },
+      {
+        id: 'unknown',
+        name: '不明管线',
+        expanded: true,
+        children: [
+          { id: 'unknown_pipeline', name: '不明管线', selected: true }
+        ]
+      }
     ])
 
 
@@ -179,23 +283,82 @@ export default {
       updateLayerDisplay()
     }
 
-    const selectAll = () => {
-      selectedLayers.value = layerOptions.value.map((_, index) => index)
-      currentLayerIndex.value = 0
+    // 计算是否全选
+    const isAllSelected = computed(() => {
+      return layerOptions.value.every(category => 
+        category.children.every(child => child.selected)
+      )
+    })
+
+    // 计算是否全部展开
+    const isAllExpanded = computed(() => {
+      return layerOptions.value.every(category => category.expanded)
+    })
+
+    const toggleSelectAll = () => {
+      const shouldSelectAll = !isAllSelected.value
+      layerOptions.value.forEach(category => {
+        category.children.forEach(child => {
+          child.selected = shouldSelectAll
+        })
+      })
       updateLayerDisplay()
       uni.showToast({
-        title: '已全选所有图层',
+        title: shouldSelectAll ? '已全选所有图层' : '已取消选择所有图层',
         icon: 'none'
       })
     }
 
-    const selectNone = () => {
-      selectedLayers.value = []
-      updateLayerDisplay()
+    const toggleExpandAll = () => {
+      const shouldExpandAll = !isAllExpanded.value
+      layerOptions.value.forEach(category => {
+        category.expanded = shouldExpandAll
+      })
       uni.showToast({
-        title: '已取消选择所有图层',
+        title: shouldExpandAll ? '已展开所有分类' : '已收起所有分类',
         icon: 'none'
       })
+    }
+
+    const toggleCategory = (categoryIndex) => {
+      const category = layerOptions.value[categoryIndex]
+      
+      // 如果分类未展开，先展开
+      if (!category.expanded) {
+        category.expanded = true
+        return
+      }
+      
+      // 如果已展开，则切换该分类下所有子项的选中状态
+      const hasSelected = category.children.some(child => child.selected)
+      const shouldSelect = !hasSelected
+      
+      category.children.forEach(child => {
+        child.selected = shouldSelect
+      })
+      
+      updateLayerDisplay()
+      
+      uni.showToast({
+        title: shouldSelect ? `已选择${category.name}下所有图层` : `已取消${category.name}下所有图层`,
+        icon: 'none'
+      })
+    }
+
+    const isCategorySelected = (categoryIndex) => {
+      const category = layerOptions.value[categoryIndex]
+      return category.children.some(child => child.selected)
+    }
+
+    const isCategoryFullySelected = (categoryIndex) => {
+      const category = layerOptions.value[categoryIndex]
+      return category.children.every(child => child.selected)
+    }
+
+    const selectSubLayer = (categoryIndex, childIndex) => {
+      layerOptions.value[categoryIndex].children[childIndex].selected = 
+        !layerOptions.value[categoryIndex].children[childIndex].selected
+      updateLayerDisplay()
     }
 
     const updateLayerDisplay = () => {
@@ -210,14 +373,21 @@ export default {
     }
 
     const getDisplayText = () => {
-      if (selectedLayers.value.length === 0) {
+      const selectedItems = []
+      layerOptions.value.forEach(category => {
+        category.children.forEach(child => {
+          if (child.selected) {
+            selectedItems.push(child.name)
+          }
+        })
+      })
+      
+      if (selectedItems.length === 0) {
         return '请选择图层'
-      } else if (selectedLayers.value.length === 1) {
-        return layerOptions.value[selectedLayers.value[0]]
-      } else if (selectedLayers.value.length === layerOptions.value.length) {
-        return '全部图层'
+      } else if (selectedItems.length === 1) {
+        return selectedItems[0]
       } else {
-        return `已选择${selectedLayers.value.length}个图层`
+        return `已选择${selectedItems.length}个图层`
       }
     }
 
@@ -1072,10 +1242,16 @@ export default {
       // 方法
       toggleDropdown,
       selectLayer,
-      selectAll,
-      selectNone,
+      toggleSelectAll,
+      toggleExpandAll,
+      toggleCategory,
+      isCategorySelected,
+      isCategoryFullySelected,
+      selectSubLayer,
       updateLayerDisplay,
       getDisplayText,
+      isAllSelected,
+      isAllExpanded,
       closeDropdown,
       onSearchInput,
       searchPoint,
