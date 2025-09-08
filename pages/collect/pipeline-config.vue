@@ -267,15 +267,18 @@ export default {
 }
 </script>
 
-<style>
+<style scoped>
 .container {
-	flex: 1;
+	display: flex;
+	flex-direction: column;
+	height: 100vh;
 	background-color: #007AFF;
 }
 
 .header {
 	height: 88rpx;
 	background-color: #007AFF;
+	display: flex;
 	flex-direction: row;
 	align-items: center;
 	justify-content: space-between;
@@ -285,6 +288,7 @@ export default {
 }
 
 .header-left {
+	display: flex;
 	flex-direction: row;
 	align-items: center;
 }
@@ -304,10 +308,6 @@ export default {
 	font-size: 36rpx;
 	color: #FFFFFF;
 	font-weight: bold;
-}
-
-.header-right {
-	
 }
 
 .confirm-text {
@@ -336,6 +336,7 @@ export default {
 }
 
 .form-item {
+	display: flex;
 	flex-direction: row;
 	align-items: center;
 	margin-bottom: 30rpx;
@@ -357,6 +358,7 @@ export default {
 	padding-right: 20rpx;
 	font-size: 28rpx;
 	color: #333333;
+	box-sizing: border-box;
 }
 
 .picker {
@@ -369,9 +371,11 @@ export default {
 	border-radius: 8rpx;
 	padding-left: 20rpx;
 	padding-right: 20rpx;
+	display: flex;
 	flex-direction: row;
 	align-items: center;
 	justify-content: space-between;
+	box-sizing: border-box;
 }
 
 .picker-text text:first-child {
