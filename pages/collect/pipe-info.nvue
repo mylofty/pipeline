@@ -468,7 +468,7 @@ export default {
 <style>
 .container {
 	flex: 1;
-	background-color: #f5f5f5;
+	background-color: #1890ff;
 }
 
 .header {
@@ -479,6 +479,7 @@ export default {
 	justify-content: space-between;
 	padding-left: 32rpx;
 	padding-right: 32rpx;
+	margin-top: 80rpx;
 }
 
 .header-left {
@@ -550,7 +551,8 @@ export default {
 
 .content {
 	flex: 1;
-	padding: 0 32rpx;
+	padding: 0 20rpx;
+	background-color: #ffffff;
 }
 
 .form-item {

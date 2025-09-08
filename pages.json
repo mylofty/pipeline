@@ -22,7 +22,9 @@
 		{
 			"path": "pages/collect/pipe-info",
 			"style": {
-				"navigationBarTitleText": "管点信息"
+				"navigationBarTitleText": "管点信息",
+				"navigationStyle": "custom"
+				// "usingComponents": true
 			}
 		},
 		{
