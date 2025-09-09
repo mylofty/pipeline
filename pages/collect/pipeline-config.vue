@@ -10,124 +10,128 @@
 				<text class="confirm-text">确定</text>
 			</view>
 		</view>
-		
+
 		<scroll-view class="content" scroll-y="true">
 			<view class="form-section">
 				<text class="section-title">基本信息</text>
-				
+
 				<view class="form-item">
 					<text class="label">类别</text>
-					<picker class="picker" :value="formData.categoryIndex" :range="categoryOptions" @change="onCategoryChange">
+					<picker class="picker" :value="formData.categoryIndex" :range="categoryOptions"
+						@change="onCategoryChange">
 						<view class="picker-text">
-							<text>{{categoryOptions[formData.categoryIndex]}}</text>
+							<text>{{ categoryOptions[formData.categoryIndex] }}</text>
 							<text class="arrow">▼</text>
 						</view>
 					</picker>
 				</view>
-				
+
 				<view class="form-item">
 					<text class="label">起点号</text>
 					<input class="input" v-model="formData.startPoint" placeholder="请输入起点号" />
 				</view>
-				
+
 				<view class="form-item">
 					<text class="label">终点号</text>
 					<input class="input" v-model="formData.endPoint" placeholder="请输入终点号" />
 				</view>
-				
+
 				<view class="form-item">
 					<text class="label">流向</text>
-					<picker class="picker" :value="formData.directionIndex" :range="directionOptions" @change="onDirectionChange">
+					<picker class="picker" :value="formData.directionIndex" :range="directionOptions"
+						@change="onDirectionChange">
 						<view class="picker-text">
-							<text>{{directionOptions[formData.directionIndex]}}</text>
+							<text>{{ directionOptions[formData.directionIndex] }}</text>
 							<text class="arrow">▼</text>
 						</view>
 					</picker>
 				</view>
-				
+
 				<view class="form-item">
 					<text class="label">录像编号</text>
 					<input class="input" v-model="formData.videoNumber" placeholder="请输入" />
 				</view>
 			</view>
-			
+
 			<view class="form-section">
 				<text class="section-title">管线参数</text>
-				
+
 				<view class="form-item">
 					<text class="label">起点埋深(米)</text>
 					<input class="input" v-model="formData.startDepth" placeholder="请输入" type="number" />
 				</view>
-				
+
 				<view class="form-item">
 					<text class="label">终点埋深(米)</text>
 					<input class="input" v-model="formData.endDepth" placeholder="请输入" type="number" />
 				</view>
-				
+
 				<view class="form-item">
 					<text class="label">埋设类型</text>
-					<picker class="picker" :value="formData.buryTypeIndex" :range="buryTypeOptions" @change="onBuryTypeChange">
+					<picker class="picker" :value="formData.buryTypeIndex" :range="buryTypeOptions"
+						@change="onBuryTypeChange">
 						<view class="picker-text">
-							<text>{{buryTypeOptions[formData.buryTypeIndex]}}</text>
+							<text>{{ buryTypeOptions[formData.buryTypeIndex] }}</text>
 							<text class="arrow">▼</text>
 						</view>
 					</picker>
 				</view>
-				
+
 				<view class="form-item">
 					<text class="label">管线长度(米)</text>
 					<input class="input" v-model="formData.length" placeholder="16.00" type="number" />
 				</view>
-				
+
 				<view class="form-item">
 					<text class="label">管径</text>
 					<input class="input" v-model="formData.diameter" placeholder="请输入" />
 				</view>
-				
+
 				<view class="form-item">
 					<text class="label">材质</text>
-					<picker class="picker" :value="formData.materialIndex" :range="materialOptions" @change="onMaterialChange">
+					<picker class="picker" :value="formData.materialIndex" :range="materialOptions"
+						@change="onMaterialChange">
 						<view class="picker-text">
-							<text>{{materialOptions[formData.materialIndex]}}</text>
+							<text>{{ materialOptions[formData.materialIndex] }}</text>
 							<text class="arrow">▼</text>
 						</view>
 					</picker>
 				</view>
-				
+
 				<view class="form-item">
 					<text class="label">权属单位</text>
 					<input class="input" v-model="formData.ownerUnit" placeholder="请输入" />
 				</view>
 			</view>
-			
+
 			<view class="form-section">
 				<text class="section-title">时间信息</text>
-				
+
 				<view class="form-item">
 					<text class="label">建设日期</text>
 					<picker class="picker" mode="date" :value="formData.buildDate" @change="onBuildDateChange">
 						<view class="picker-text">
-							<text>{{formData.buildDate || '2010-5-10'}}</text>
+							<text>{{ formData.buildDate || '2010-5-10' }}</text>
 							<text class="arrow">▼</text>
 						</view>
 					</picker>
 				</view>
-				
+
 				<view class="form-item">
 					<text class="label">调查日期</text>
 					<picker class="picker" mode="date" :value="formData.surveyDate" @change="onSurveyDateChange">
 						<view class="picker-text">
-							<text>{{formData.surveyDate || '2022-3-22'}}</text>
+							<text>{{ formData.surveyDate || '2022-3-22' }}</text>
 							<text class="arrow">▼</text>
 						</view>
 					</picker>
 				</view>
-				
+
 				<view class="form-item">
 					<text class="label">市政办</text>
 					<input class="input" v-model="formData.municipalOffice" placeholder="请输入" />
 				</view>
-				
+
 				<view class="form-item">
 					<text class="label">所在道路</text>
 					<input class="input" v-model="formData.roadLocation" placeholder="请输入" />
@@ -198,7 +202,7 @@ export default {
 			console.log('当前表单数据:', this.formData);
 			console.log('起点数据:', this.startPointData);
 			console.log('终点数据:', this.endPointData);
-			
+
 			// 验证必填字段
 			if (!this.formData.startPoint || !this.formData.endPoint) {
 				uni.showToast({
@@ -207,7 +211,7 @@ export default {
 				});
 				return;
 			}
-			
+
 			if (!this.startPointData || !this.endPointData) {
 				uni.showToast({
 					title: '缺少点位坐标数据',
@@ -215,7 +219,7 @@ export default {
 				});
 				return;
 			}
-			
+
 			// 构造管线数据
 			const pipelineData = {
 				...this.formData,
@@ -226,14 +230,14 @@ export default {
 				startPointData: this.startPointData,
 				endPointData: this.endPointData
 			};
-			
+
 			console.log('构造的管线数据:', pipelineData);
-			
+
 			// 返回上一页并传递数据
 			const pages = getCurrentPages();
 			const prevPage = pages[pages.length - 2];
 			console.log('上一页对象:', prevPage);
-			
+
 			if (prevPage && prevPage.$vm && prevPage.$vm.addPipeline) {
 				prevPage.$vm.addPipeline(pipelineData);
 				uni.navigateBack();
@@ -284,7 +288,10 @@ export default {
 	justify-content: space-between;
 	padding-left: 30rpx;
 	padding-right: 30rpx;
+	/* 仅在Android平台显示 */
+	/* #ifdef APP-PLUS */
 	margin-top: 80rpx;
+	/* #endif */
 }
 
 .header-left {
