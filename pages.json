@@ -24,7 +24,6 @@
 			"style": {
 				"navigationBarTitleText": "管点信息",
 				"navigationStyle": "custom"
-				// "usingComponents": true
 			}
 		},
 		{
