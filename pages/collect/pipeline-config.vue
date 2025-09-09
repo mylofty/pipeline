@@ -361,8 +361,7 @@ export default {
 	height: 80rpx;
 	border: 2rpx solid #E5E5E5;
 	border-radius: 8rpx;
-	padding-left: 20rpx;
-	padding-right: 20rpx;
+	padding: 0 20rpx;
 	font-size: 28rpx;
 	color: #333333;
 	box-sizing: border-box;
@@ -376,8 +375,7 @@ export default {
 	height: 80rpx;
 	border: 2rpx solid #E5E5E5;
 	border-radius: 8rpx;
-	padding-left: 20rpx;
-	padding-right: 20rpx;
+	padding: 0 20rpx;
 	display: flex;
 	flex-direction: row;
 	align-items: center;

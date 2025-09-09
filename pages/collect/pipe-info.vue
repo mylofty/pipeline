@@ -629,14 +629,14 @@
 	}
 
 	.action-btn {
-		width: 80rpx;
-		height: 80rpx;
-		background-color: #f5f5f5;
-		border-radius: 8rpx;
 		display: flex;
 		align-items: center;
 		justify-content: center;
 		margin-left: 16rpx;
+		width: 80rpx;
+		height: 80rpx;
+		background-color: #f5f5f5;
+		border-radius: 8rpx;
 	}
 
 	.action-icon {
