@@ -28,10 +28,7 @@
 	flex-direction: row;
 	align-items: center;
 	white-space: nowrap;
-	padding-top: 8px;
-	padding-bottom: 8px;
-	padding-left: 12px;
-	padding-right: 12px;
+	padding: 8px 12px;
 	background-color: rgba(255,255,255,0.9);
 	border-radius: 6px;
 	font-size: 18px;
@@ -184,7 +181,6 @@
 	align-items: center;
 	background-color: rgba(255,255,255,0.9);
 	border-radius: 8px;
-	/* padding: 8px; */
 	margin-left: 10px;
 }
 
@@ -195,13 +191,11 @@
 	font-size: 16px;
 	color: #333;
 	padding-left: 15rpx;
-	/* padding: 12rpx 10rpx; */
 }
 
 .search-btn {
 	width: 40px;
 	height: 40px;
-	/* background-color: #2196F3; */
 	border-radius: 6px;
 	display: flex;
 	align-items: center;
@@ -286,10 +280,7 @@
 	transform: translateX(-50%);
 	background-color: #2196F3;
 	color: white;
-	padding-top: 20px;
-	padding-bottom: 20px;
-	padding-left: 40px;
-	padding-right: 40px;
+	padding: 20px 40px;
 	border-radius: 50px;
 	box-shadow: 0 8px 24px rgba(33, 150, 243, 0.3);
 	z-index: 100;
@@ -323,15 +314,12 @@
 }
 
 .modal-header {
-	padding-top: 30rpx;
-	padding-bottom: 30rpx;
-	padding-left: 40rpx;
-	padding-right: 40rpx;
-	background-color: #2196F3;
-	color: white;
 	display: flex;
 	justify-content: space-between;
 	align-items: center;
+	padding: 30rpx 40rpx;
+	background-color: #2196F3;
+	color: white;
 }
 
 .modal-title {
@@ -402,10 +390,7 @@
 
 .form-item .picker-display {
 	width: 100%;
-	padding-top: 16rpx;
-	padding-bottom: 16rpx;
-	padding-left: 24rpx;
-	padding-right: 24rpx;
+	padding: 16rpx 24rpx;
 	border-width: 1px;
 	border-color: #ddd;
 	border-style: solid;
@@ -416,10 +401,7 @@
 }
 
 .modal-footer {
-	padding-top: 30rpx;
-	padding-bottom: 30rpx;
-	padding-left: 40rpx;
-	padding-right: 40rpx;
+	padding: 30rpx 40rpx;
 	background-color: #f8f8f8;
 	display: flex;
 	flex-direction: row;
@@ -427,10 +409,7 @@
 }
 
 .cancel-btn, .confirm-btn {
-	padding-top: 16rpx;
-	padding-bottom: 16rpx;
-	padding-left: 40rpx;
-	padding-right: 40rpx;
+	padding: 16rpx 40rpx;
 	border-radius: 8rpx;
 	border-width: 0;
 	font-size: 28rpx;
@@ -457,10 +436,7 @@
 
 .result-content {
 	background-color: white;
-	padding-top: 15px;
-	padding-bottom: 15px;
-	padding-left: 20px;
-	padding-right: 20px;
+	padding: 15px 20px;
 	border-radius: 8px;
 	box-shadow: 0 4px 12px rgba(0,0,0,0.15);
 	text-align: center;
@@ -485,15 +461,11 @@
 
 .clear-btn, .close-btn {
 	flex: 1;
-	padding-top: 6px;
-	padding-bottom: 6px;
-	padding-left: 12px;
-	padding-right: 12px;
+	padding: 6px 12px;
 	border-radius: 4px;
 	border-width: 0;
 	font-size: 12px;
-	margin-left: 5px;
-	margin-right: 5px;
+	margin: 0 5px;
 }
 
 .clear-btn {
@@ -564,8 +536,7 @@
 	display: flex;
 	flex-direction: row;
 	align-items: center;
-	padding-top: 16rpx;
-	padding-bottom: 16rpx;
+	padding: 16rpx 0;
 	border-bottom-width: 2rpx;
 	border-bottom-color: #f0f0f0;
 	border-bottom-style: solid;
@@ -589,8 +560,7 @@
 	border-radius: 8rpx;
 	font-size: 28rpx;
 	box-sizing: border-box;
-	padding-left: 24rpx;
-	padding-right: 24rpx;
+	padding: 0 24rpx;
 }
 
 .pipeline-modal .form-value {
@@ -604,10 +574,7 @@
 
 .pipeline-modal .picker-display {
 	width: 500rpx;
-	padding-top: 16rpx;
-	padding-bottom: 16rpx;
-	padding-left: 24rpx;
-	padding-right: 24rpx;
+	padding: 16rpx 24rpx;
 	border-width: 1px;
 	border-color: #ddd;
 	border-style: solid;
@@ -626,10 +593,7 @@
 }
 
 .pipeline-modal .modal-footer {
-	padding-top: 30rpx;
-	padding-bottom: 30rpx;
-	padding-left: 40rpx;
-	padding-right: 40rpx;
+	padding: 30rpx 40rpx;
 	background-color: #f8f8f8;
 	display: flex;
 	flex-direction: row;
@@ -638,10 +602,7 @@
 
 .pipeline-modal .cancel-btn,
 .pipeline-modal .confirm-btn {
-	padding-top: 16rpx;
-	padding-bottom: 16rpx;
-	padding-left: 40rpx;
-	padding-right: 40rpx;
+	padding: 16rpx 40rpx;
 	border-radius: 8rpx;
 	border-width: 0;
 	font-size: 28rpx;
