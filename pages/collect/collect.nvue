@@ -3,44 +3,18 @@
     <!-- 顶部工具栏 -->
     <div class="top-toolbar">
       <!-- 图层管理下拉框 -->
-      <div class="layer-selector">
-        <div class="picker-display" @click.stop="toggleDropdown">
-          <text class="picker-text">{{ getDisplayText() }}</text>
-          <text class="arrow" :class="{ 'arrow-up': showDropdown }">▼</text>
-        </div>
-        <div class="dropdown" v-if="showDropdown" @click.stop>
-          <div class="dropdown-item select-all-item" @click="toggleSelectAll">
-            <text>{{ isAllSelected ? '全不选' : '全选' }}</text>
-          </div>
-          <div class="dropdown-item select-all-item" @click="toggleExpandAll">
-            <text>{{ isAllExpanded ? '全部收起' : '全部展开' }}</text>
-          </div>
-          <div class="dropdown-divider"></div>
-          <div v-for="(category, categoryIndex) in layerOptions" :key="categoryIndex" class="category-group">
-            <div class="dropdown-item category-item" @click="toggleCategory(categoryIndex)">
-              <div class="checkbox-wrapper">
-                <text class="checkbox" :class="{ 
-                  checked: isCategorySelected(categoryIndex),
-                  'partially-checked': isCategorySelected(categoryIndex) && !isCategoryFullySelected(categoryIndex)
-                }">{{
-                  isCategoryFullySelected(categoryIndex) ? '✓' : (isCategorySelected(categoryIndex) ? '◐' : '') }}</text>
-                <text class="layer-name category-name">{{ category.name }}</text>
-                <text class="expand-arrow" :class="{ expanded: category.expanded }">▼</text>
-              </div>
-            </div>
-            <div v-if="category.expanded" class="subcategory-list">
-              <div v-for="(child, childIndex) in category.children" :key="childIndex" 
-                   class="dropdown-item subcategory-item" @click="selectSubLayer(categoryIndex, childIndex)">
-                <div class="checkbox-wrapper">
-                  <text class="checkbox" :class="{ checked: child.selected }">{{
-                    child.selected ? '✓' : '' }}</text>
-                  <text class="layer-name sublayer-name">{{ child.name }}</text>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
+      <LayerSelector 
+        :layerOptions="layerOptions"
+        :showDropdown="showDropdown"
+        :isAllSelected="isAllSelected"
+        :isAllExpanded="isAllExpanded"
+        @toggle-dropdown="toggleDropdown"
+        @toggle-select-all="toggleSelectAll"
+        @toggle-expand-all="toggleExpandAll"
+        @toggle-category="toggleCategory"
+        @select-sub-layer="selectSubLayer"
+        @get-display-text="getDisplayText"
+      />
 
     <!-- 探点号搜索框 -->
     <div class="search-container">
@@ -105,10 +79,12 @@
 <script>
 import { ref, reactive, onMounted, onUnmounted, computed } from 'vue'
 import MapToolbar from './components/MapToolbar.nvue'
+import LayerSelector from './components/LayerSelector.vue'
 
 export default {
   components: {
-    MapToolbar
+    MapToolbar,
+    LayerSelector
   },
   setup() {
     // 响应式数据
