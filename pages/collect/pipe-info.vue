@@ -27,8 +27,14 @@
 			<!-- 类别 -->
 			<view class="form-item">
 				<text class="label">类别</text>
-				<view class="select-wrapper" @click="showCategoryPicker">
-					<text class="select-text">{{ formData.category || '雨水' }}</text>
+				<view class="select-wrapper-new">
+					<uni-data-select 
+						v-model="formData.category" 
+						:localdata="categoryOptionsData"
+						placeholder="请选择类别"
+						mode="none"
+						class="uni-select-custom">
+					</uni-data-select>
 					<text class="arrow-icon">›</text>
 				</view>
 			</view>
@@ -42,8 +48,14 @@
 			<!-- 管点种类 -->
 			<view class="form-item">
 				<text class="label">管点种类</text>
-				<view class="select-wrapper" @click="showPointTypePicker">
-					<text class="select-text">{{ formData.pointType || '实点' }}</text>
+				<view class="select-wrapper-new">
+					<uni-data-select 
+						v-model="formData.pointType" 
+						:localdata="pointTypeOptionsData"
+						placeholder="请选择管点种类"
+						mode="none"
+						class="uni-select-custom">
+					</uni-data-select>
 					<text class="arrow-icon">›</text>
 				</view>
 			</view>
@@ -51,8 +63,14 @@
 			<!-- 特征 -->
 			<view class="form-item">
 				<text class="label">特征</text>
-				<view class="select-wrapper" @click="showFeaturePicker">
-					<text class="select-text">{{ formData.feature || '请选择' }}</text>
+				<view class="select-wrapper-new">
+					<uni-data-select 
+						v-model="formData.feature" 
+						:localdata="featureOptionsData"
+						placeholder="请选择特征"
+						mode="none"
+						class="uni-select-custom">
+					</uni-data-select>
 					<text class="arrow-icon">›</text>
 				</view>
 			</view>
@@ -60,8 +78,14 @@
 			<!-- 附属物 -->
 			<view class="form-item">
 				<text class="label">附属物</text>
-				<view class="select-wrapper" @click="showAttachmentPicker">
-					<text class="select-text">{{ formData.attachment || '请选择' }}</text>
+				<view class="select-wrapper-new">
+					<uni-data-select 
+						v-model="formData.attachment" 
+						:localdata="attachmentOptionsData"
+						placeholder="请选择附属物"
+						mode="none"
+						class="uni-select-custom">
+					</uni-data-select>
 					<text class="arrow-icon">›</text>
 				</view>
 			</view>
@@ -69,8 +93,14 @@
 			<!-- 是否挂网 -->
 			<view class="form-item">
 				<text class="label">是否挂网</text>
-				<view class="select-wrapper" @click="showNetworkPicker">
-					<text class="select-text">{{ formData.isNetworked || '请选择' }}</text>
+				<view class="select-wrapper-new">
+					<uni-data-select 
+						v-model="formData.isNetworked" 
+						:localdata="networkOptionsData"
+						placeholder="请选择是否挂网"
+						mode="none"
+						class="uni-select-custom">
+					</uni-data-select>
 					<text class="arrow-icon">›</text>
 				</view>
 			</view>
@@ -78,8 +108,14 @@
 			<!-- 检查井盖类型 -->
 			<view class="form-item">
 				<text class="label">检查井盖类型</text>
-				<view class="select-wrapper" @click="showCoverTypePicker">
-					<text class="select-text">{{ formData.coverType || '请选择' }}</text>
+				<view class="select-wrapper-new">
+					<uni-data-select 
+						v-model="formData.coverType" 
+						:localdata="coverTypeOptionsData"
+						placeholder="请选择检查井盖类型"
+						mode="none"
+						class="uni-select-custom">
+					</uni-data-select>
 					<text class="arrow-icon">›</text>
 				</view>
 			</view>
@@ -93,8 +129,14 @@
 			<!-- 内部检查 -->
 			<view class="form-item">
 				<text class="label">内部检查</text>
-				<view class="select-wrapper" @click="showInternalCheckPicker">
-					<text class="select-text">{{ formData.internalCheck || '请选择' }}</text>
+				<view class="select-wrapper-new">
+					<uni-data-select 
+						v-model="formData.internalCheck" 
+						:localdata="internalCheckOptionsData"
+						placeholder="请选择内部检查状态"
+						mode="none"
+						class="uni-select-custom">
+					</uni-data-select>
 					<text class="arrow-icon">›</text>
 				</view>
 			</view>
@@ -102,8 +144,14 @@
 			<!-- 外部检查 -->
 			<view class="form-item">
 				<text class="label">外部检查</text>
-				<view class="select-wrapper" @click="showExternalCheckPicker">
-					<text class="select-text">{{ formData.externalCheck || '请选择' }}</text>
+				<view class="select-wrapper-new">
+					<uni-data-select 
+						v-model="formData.externalCheck" 
+						:localdata="externalCheckOptionsData"
+						placeholder="请选择外部检查状态"
+						mode="none"
+						class="uni-select-custom">
+					</uni-data-select>
 					<text class="arrow-icon">›</text>
 				</view>
 			</view>
@@ -123,8 +171,14 @@
 			<!-- 井盖材质 -->
 			<view class="form-item">
 				<text class="label">井盖材质</text>
-				<view class="select-wrapper" @click="showCoverMaterialPicker">
-					<text class="select-text">{{ formData.coverMaterial || '请选择' }}</text>
+				<view class="select-wrapper-new">
+					<uni-data-select 
+						v-model="formData.coverMaterial" 
+						:localdata="coverMaterialOptionsData"
+						placeholder="请选择井盖材质"
+						mode="none"
+						class="uni-select-custom">
+					</uni-data-select>
 					<text class="arrow-icon">›</text>
 				</view>
 			</view>
@@ -175,14 +229,17 @@
 			</view>
 		</scroll-view>
 
-		<!-- 选择器 -->
-		<picker v-if="showPicker" :range="pickerData" @change="onPickerChange" @cancel="hidePicker">
-		</picker>
+
 	</view>
 </template>
 
 <script>
+	import uniDataSelect from '@/uni_modules/uni-data-select/components/uni-data-select/uni-data-select.vue'
+	
 	export default {
+		components: {
+			uniDataSelect
+		},
 		data() {
 			return {
 				activeTab: 'basic',
@@ -196,29 +253,61 @@
 					category: '雨水',
 					pointNumber: '',
 					pointType: '实点',
-					feature: '',
-					attachment: '',
-					isNetworked: '',
-					coverType: '',
+					feature: '正常',
+					attachment: '无',
+					isNetworked: '否',
+					coverType: '圆形',
 					plateNumber: '',
-					internalCheck: '',
-					externalCheck: '',
+					internalCheck: '正常',
+					externalCheck: '正常',
 					depth: '',
 					road: '',
-					coverMaterial: '',
+					coverMaterial: '铸铁',
 					coverCategory: '',
 					coverSpec: ''
 				},
-				// 选择器数据
-				categoryOptions: ['雨水', '污水', '合流'],
-				pointTypeOptions: ['实点', '虚点'],
-				featureOptions: ['正常', '破损', '缺失'],
-				attachmentOptions: ['无', '雨篦子', '检查井'],
-				networkOptions: ['是', '否'],
-				coverTypeOptions: ['圆形', '方形', '矩形'],
-				internalCheckOptions: ['正常', '异常'],
-				externalCheckOptions: ['正常', '异常'],
-				coverMaterialOptions: ['铸铁', '水泥', '复合材料']
+				// uni-data-select 选择器数据
+				categoryOptionsData: [
+					{ text: '雨水', value: '雨水' },
+					{ text: '污水', value: '污水' },
+					{ text: '合流', value: '合流' }
+				],
+				pointTypeOptionsData: [
+					{ text: '实点', value: '实点' },
+					{ text: '虚点', value: '虚点' }
+				],
+				featureOptionsData: [
+					{ text: '正常', value: '正常' },
+					{ text: '破损', value: '破损' },
+					{ text: '缺失', value: '缺失' }
+				],
+				attachmentOptionsData: [
+					{ text: '无', value: '无' },
+					{ text: '雨篦子', value: '雨篦子' },
+					{ text: '检查井', value: '检查井' }
+				],
+				networkOptionsData: [
+					{ text: '是', value: '是' },
+					{ text: '否', value: '否' }
+				],
+				coverTypeOptionsData: [
+					{ text: '圆形', value: '圆形' },
+					{ text: '方形', value: '方形' },
+					{ text: '矩形', value: '矩形' }
+				],
+				internalCheckOptionsData: [
+					{ text: '正常', value: '正常' },
+					{ text: '异常', value: '异常' }
+				],
+				externalCheckOptionsData: [
+					{ text: '正常', value: '正常' },
+					{ text: '异常', value: '异常' }
+				],
+				coverMaterialOptionsData: [
+					{ text: '铸铁', value: '铸铁' },
+					{ text: '水泥', value: '水泥' },
+					{ text: '复合材料', value: '复合材料' }
+				]
 			}
 		},
 		onLoad(options) {
@@ -303,83 +392,7 @@
 				}, 1500);
 			},
 
-			// 显示类别选择器
-			showCategoryPicker() {
-				this.currentPickerType = 'category';
-				this.pickerData = this.categoryOptions;
-				this.showPicker = true;
-			},
 
-			// 显示管点种类选择器
-			showPointTypePicker() {
-				this.currentPickerType = 'pointType';
-				this.pickerData = this.pointTypeOptions;
-				this.showPicker = true;
-			},
-
-			// 显示特征选择器
-			showFeaturePicker() {
-				this.currentPickerType = 'feature';
-				this.pickerData = this.featureOptions;
-				this.showPicker = true;
-			},
-
-			// 显示附属物选择器
-			showAttachmentPicker() {
-				this.currentPickerType = 'attachment';
-				this.pickerData = this.attachmentOptions;
-				this.showPicker = true;
-			},
-
-			// 显示是否挂网选择器
-			showNetworkPicker() {
-				this.currentPickerType = 'isNetworked';
-				this.pickerData = this.networkOptions;
-				this.showPicker = true;
-			},
-
-			// 显示井盖类型选择器
-			showCoverTypePicker() {
-				this.currentPickerType = 'coverType';
-				this.pickerData = this.coverTypeOptions;
-				this.showPicker = true;
-			},
-
-			// 显示内部检查选择器
-			showInternalCheckPicker() {
-				this.currentPickerType = 'internalCheck';
-				this.pickerData = this.internalCheckOptions;
-				this.showPicker = true;
-			},
-
-			// 显示外部检查选择器
-			showExternalCheckPicker() {
-				this.currentPickerType = 'externalCheck';
-				this.pickerData = this.externalCheckOptions;
-				this.showPicker = true;
-			},
-
-			// 显示井盖材质选择器
-			showCoverMaterialPicker() {
-				this.currentPickerType = 'coverMaterial';
-				this.pickerData = this.coverMaterialOptions;
-				this.showPicker = true;
-			},
-
-			// 选择器选择事件
-			onPickerChange(e) {
-				const index = e.detail.value;
-				const value = this.pickerData[index];
-				this.formData[this.currentPickerType] = value;
-				this.hidePicker();
-			},
-
-			// 隐藏选择器
-			hidePicker() {
-				this.showPicker = false;
-				this.currentPickerType = '';
-				this.pickerData = [];
-			},
 
 			// 从相册选择图片
 			selectFromAlbum() {
@@ -570,6 +583,7 @@
 		padding: 0 32rpx;
 		margin-bottom: 2rpx;
 		border-bottom: 1rpx solid #f0f0f0;
+		position: relative;
 	}
 
 	.label {
@@ -692,5 +706,71 @@
 	.empty-text {
 		font-size: 28rpx;
 		color: #999999;
+	}
+
+	/* 新的选择器包装样式 */
+	.select-wrapper-new {
+		flex: 1;
+		display: flex;
+		flex-direction: row;
+		align-items: center;
+		justify-content: flex-end;
+		position: relative;
+	}
+
+	/* uni-data-select 自定义样式 */
+	.uni-select-custom {
+		flex: 1;
+		display: flex;
+		justify-content: flex-end;
+	}
+
+	.uni-select-custom ::v-deep .uni-stat__select {
+		width: 100%;
+		justify-content: flex-end;
+	}
+
+	.uni-select-custom ::v-deep .uni-select {
+		border: none;
+		padding: 0;
+		min-height: auto;
+		background: transparent;
+		justify-content: flex-end;
+	}
+
+	.uni-select-custom ::v-deep .uni-select__input-box {
+		justify-content: flex-end;
+		align-items: center;
+	}
+
+	.uni-select-custom ::v-deep .uni-select__input-text {
+		text-align: right;
+		color: #333333;
+		font-size: 32rpx;
+	}
+
+	.uni-select-custom ::v-deep .uni-select__input-placeholder {
+		text-align: right;
+		color: #999999;
+		font-size: 32rpx;
+	}
+
+	.uni-select-custom ::v-deep .uni-select__selector {
+		right: 0;
+		left: auto;
+		min-width: 200rpx;
+	}
+
+	/* 隐藏uni-data-select自带的箭头 */
+	.uni-select-custom ::v-deep .uni-icons {
+		display: none !important;
+	}
+
+	/* 自定义箭头样式 */
+	.select-wrapper-new .arrow-icon {
+		font-size: 32rpx;
+		color: #cccccc;
+		transform: rotate(90deg);
+		margin-left: 16rpx;
 	}
 </style>
