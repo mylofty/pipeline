@@ -17,13 +17,16 @@
 
 				<view class="form-item">
 					<text class="label">类别</text>
-					<picker class="picker" :value="formData.categoryIndex" :range="categoryOptions"
-						@change="onCategoryChange">
-						<view class="picker-text">
-							<text>{{ categoryOptions[formData.categoryIndex] }}</text>
-							<text class="arrow">▼</text>
-						</view>
-					</picker>
+					<view class="select-wrapper-new">
+						<uni-data-select 
+							v-model="formData.category" 
+							:localdata="categoryOptionsData"
+							placeholder="请选择类别"
+							mode="none"
+							class="uni-select-custom">
+						</uni-data-select>
+						<text class="arrow-icon">›</text>
+					</view>
 				</view>
 
 				<view class="form-item">
@@ -38,13 +41,16 @@
 
 				<view class="form-item">
 					<text class="label">流向</text>
-					<picker class="picker" :value="formData.directionIndex" :range="directionOptions"
-						@change="onDirectionChange">
-						<view class="picker-text">
-							<text>{{ directionOptions[formData.directionIndex] }}</text>
-							<text class="arrow">▼</text>
-						</view>
-					</picker>
+					<view class="select-wrapper-new">
+						<uni-data-select 
+							v-model="formData.direction" 
+							:localdata="directionOptionsData"
+							placeholder="请选择流向"
+							mode="none"
+							class="uni-select-custom">
+						</uni-data-select>
+						<text class="arrow-icon">›</text>
+					</view>
 				</view>
 
 				<view class="form-item">
@@ -68,13 +74,16 @@
 
 				<view class="form-item">
 					<text class="label">埋设类型</text>
-					<picker class="picker" :value="formData.buryTypeIndex" :range="buryTypeOptions"
-						@change="onBuryTypeChange">
-						<view class="picker-text">
-							<text>{{ buryTypeOptions[formData.buryTypeIndex] }}</text>
-							<text class="arrow">▼</text>
-						</view>
-					</picker>
+					<view class="select-wrapper-new">
+						<uni-data-select 
+							v-model="formData.buryType" 
+							:localdata="buryTypeOptionsData"
+							placeholder="请选择埋设类型"
+							mode="none"
+							class="uni-select-custom">
+						</uni-data-select>
+						<text class="arrow-icon">›</text>
+					</view>
 				</view>
 
 				<view class="form-item">
@@ -89,13 +98,16 @@
 
 				<view class="form-item">
 					<text class="label">材质</text>
-					<picker class="picker" :value="formData.materialIndex" :range="materialOptions"
-						@change="onMaterialChange">
-						<view class="picker-text">
-							<text>{{ materialOptions[formData.materialIndex] }}</text>
-							<text class="arrow">▼</text>
-						</view>
-					</picker>
+					<view class="select-wrapper-new">
+						<uni-data-select 
+							v-model="formData.material" 
+							:localdata="materialOptionsData"
+							placeholder="请选择材质"
+							mode="none"
+							class="uni-select-custom">
+						</uni-data-select>
+						<text class="arrow-icon">›</text>
+					</view>
 				</view>
 
 				<view class="form-item">
@@ -142,31 +154,57 @@
 </template>
 
 <script>
+import uniDataSelect from '@/uni_modules/uni-data-select/components/uni-data-select/uni-data-select.vue'
+
 export default {
+	components: {
+		uniDataSelect
+	},
 	data() {
 		return {
 			formData: {
-				categoryIndex: 0,
+				category: '雨水',
 				startPoint: '',
 				endPoint: '',
-				directionIndex: 0,
+				direction: '0',
 				videoNumber: '',
 				startDepth: '',
 				endDepth: '',
-				buryTypeIndex: 0,
+				buryType: '管块',
 				length: '16.00',
 				diameter: '',
-				materialIndex: 0,
+				material: '塑料',
 				ownerUnit: '',
 				buildDate: '2010-5-10',
 				surveyDate: '2022-3-22',
 				municipalOffice: '',
 				roadLocation: ''
 			},
-			categoryOptions: ['雨水', '污水', '给水', '燃气', '热力', '电力', '通信'],
-			directionOptions: ['0', '1', '2'],
-			buryTypeOptions: ['管块', '直埋'],
-			materialOptions: ['塑料', '钢材', '混凝土', '铸铁'],
+			// uni-data-select 数据格式
+			categoryOptionsData: [
+				{ text: '雨水', value: '雨水' },
+				{ text: '污水', value: '污水' },
+				{ text: '给水', value: '给水' },
+				{ text: '燃气', value: '燃气' },
+				{ text: '热力', value: '热力' },
+				{ text: '电力', value: '电力' },
+				{ text: '通信', value: '通信' }
+			],
+			directionOptionsData: [
+				{ text: '0', value: '0' },
+				{ text: '1', value: '1' },
+				{ text: '2', value: '2' }
+			],
+			buryTypeOptionsData: [
+				{ text: '管块', value: '管块' },
+				{ text: '直埋', value: '直埋' }
+			],
+			materialOptionsData: [
+				{ text: '塑料', value: '塑料' },
+				{ text: '钢材', value: '钢材' },
+				{ text: '混凝土', value: '混凝土' },
+				{ text: '铸铁', value: '铸铁' }
+			],
 			startPointData: null,
 			endPointData: null
 		}
@@ -223,10 +261,6 @@ export default {
 			// 构造管线数据
 			const pipelineData = {
 				...this.formData,
-				category: this.categoryOptions[this.formData.categoryIndex],
-				direction: this.directionOptions[this.formData.directionIndex],
-				buryType: this.buryTypeOptions[this.formData.buryTypeIndex],
-				material: this.materialOptions[this.formData.materialIndex],
 				startPointData: this.startPointData,
 				endPointData: this.endPointData
 			};
@@ -249,18 +283,7 @@ export default {
 				});
 			}
 		},
-		onCategoryChange(e) {
-			this.formData.categoryIndex = e.detail.value;
-		},
-		onDirectionChange(e) {
-			this.formData.directionIndex = e.detail.value;
-		},
-		onBuryTypeChange(e) {
-			this.formData.buryTypeIndex = e.detail.value;
-		},
-		onMaterialChange(e) {
-			this.formData.materialIndex = e.detail.value;
-		},
+
 		onBuildDateChange(e) {
 			this.formData.buildDate = e.detail.value;
 		},
@@ -391,5 +414,71 @@ export default {
 .arrow {
 	font-size: 24rpx;
 	color: #999999;
+}
+
+/* 新的选择器包装样式 */
+.select-wrapper-new {
+	flex: 1;
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	justify-content: flex-end;
+	position: relative;
+}
+
+/* uni-data-select 自定义样式 */
+.uni-select-custom {
+	flex: 1;
+	display: flex;
+	justify-content: flex-end;
+}
+
+.uni-select-custom ::v-deep .uni-stat__select {
+	width: 100%;
+	justify-content: flex-end;
+}
+
+.uni-select-custom ::v-deep .uni-select {
+	border: none;
+	padding: 0;
+	min-height: auto;
+	background: transparent;
+	justify-content: flex-end;
+}
+
+.uni-select-custom ::v-deep .uni-select__input-box {
+	justify-content: flex-end;
+	align-items: center;
+}
+
+.uni-select-custom ::v-deep .uni-select__input-text {
+	text-align: right;
+	color: #333333;
+	font-size: 28rpx;
+}
+
+.uni-select-custom ::v-deep .uni-select__input-placeholder {
+	text-align: right;
+	color: #999999;
+	font-size: 28rpx;
+}
+
+.uni-select-custom ::v-deep .uni-select__selector {
+	right: 0;
+	left: auto;
+	min-width: 200rpx;
+}
+
+/* 隐藏uni-data-select自带的箭头 */
+.uni-select-custom ::v-deep .uni-icons {
+	display: none !important;
+}
+
+/* 自定义箭头样式 */
+.select-wrapper-new .arrow-icon {
+	font-size: 32rpx;
+	color: #cccccc;
+	transform: rotate(90deg);
+	margin-left: 16rpx;
 }
 </style>
