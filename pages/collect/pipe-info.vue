@@ -725,6 +725,7 @@
 		flex-direction: column;
 		height: 100vh;
 		background-color: #1890ff;
+		overflow: hidden;
 	}
 
 	.header {
@@ -771,7 +772,7 @@
 	}
 
 	.tabs {
-		height: 88rpx;
+		height: 100rpx;
 		background-color: #ffffff;
 		display: flex;
 		flex-direction: row;
@@ -814,6 +815,8 @@
 		/* Android滚动优化 */
 		-webkit-overflow-scrolling: touch;
 		overflow-scrolling: touch;
+		/* 确保内容区域不会超出容器 */
+		overflow: hidden;
 	}
 
 	.form-item {
