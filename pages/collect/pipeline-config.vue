@@ -25,7 +25,6 @@
 							mode="none"
 							class="uni-select-custom">
 						</uni-data-select>
-						<text class="arrow-icon">›</text>
 					</view>
 				</view>
 
@@ -49,7 +48,6 @@
 							mode="none"
 							class="uni-select-custom">
 						</uni-data-select>
-						<text class="arrow-icon">›</text>
 					</view>
 				</view>
 
@@ -74,16 +72,17 @@
 
 				<view class="form-item">
 					<text class="label">埋设类型</text>
-					<view class="select-wrapper-new">
+					<view class="select-wrapper-new" v-if="formData.buryType !== '手动输入'">
 						<uni-data-select 
 							v-model="formData.buryType" 
 							:localdata="buryTypeOptionsData"
 							placeholder="请选择埋设类型"
 							mode="none"
-							class="uni-select-custom">
+							class="uni-select-custom"
+							@change="onBuryTypeChange">
 						</uni-data-select>
-						<text class="arrow-icon">›</text>
 					</view>
+					<input v-else class="input" v-model="formData.buryTypeCustom" placeholder="请输入埋设类型" />
 				</view>
 
 				<view class="form-item">
@@ -93,21 +92,32 @@
 
 				<view class="form-item">
 					<text class="label">管径</text>
-					<input class="input" v-model="formData.diameter" placeholder="请输入" />
+					<view class="select-wrapper-new" v-if="formData.diameter !== '手动输入'">
+						<uni-data-select 
+							v-model="formData.diameter" 
+							:localdata="diameterOptionsData"
+							placeholder="请选择管径"
+							mode="none"
+							class="uni-select-custom"
+							@change="onDiameterChange">
+						</uni-data-select>
+					</view>
+					<input v-else class="input" v-model="formData.diameterCustom" placeholder="请输入管径" />
 				</view>
 
 				<view class="form-item">
 					<text class="label">材质</text>
-					<view class="select-wrapper-new">
+					<view class="select-wrapper-new" v-if="formData.material !== '手动输入'">
 						<uni-data-select 
 							v-model="formData.material" 
 							:localdata="materialOptionsData"
 							placeholder="请选择材质"
 							mode="none"
-							class="uni-select-custom">
+							class="uni-select-custom"
+							@change="onMaterialChange">
 						</uni-data-select>
-						<text class="arrow-icon">›</text>
 					</view>
+					<input v-else class="input" v-model="formData.materialCustom" placeholder="请输入材质" />
 				</view>
 
 				<view class="form-item">
@@ -121,9 +131,9 @@
 
 				<view class="form-item">
 					<text class="label">建设日期</text>
-					<picker class="picker" mode="date" :value="formData.buildDate" @change="onBuildDateChange">
+					<picker class="picker" mode="date" :value="formData.buildDate || getCurrentDate()" @change="onBuildDateChange">
 						<view class="picker-text">
-							<text>{{ formData.buildDate || '2010-5-10' }}</text>
+							<text>{{ formData.buildDate || '请选择建设日期' }}</text>
 							<text class="arrow">▼</text>
 						</view>
 					</picker>
@@ -131,9 +141,9 @@
 
 				<view class="form-item">
 					<text class="label">调查日期</text>
-					<picker class="picker" mode="date" :value="formData.surveyDate" @change="onSurveyDateChange">
+					<picker class="picker" mode="date" :value="formData.surveyDate || getCurrentDate()" @change="onSurveyDateChange">
 						<view class="picker-text">
-							<text>{{ formData.surveyDate || '2022-3-22' }}</text>
+							<text>{{ formData.surveyDate || '请选择调查日期' }}</text>
 							<text class="arrow">▼</text>
 						</view>
 					</picker>
@@ -147,6 +157,31 @@
 				<view class="form-item">
 					<text class="label">所在道路</text>
 					<input class="input" v-model="formData.roadLocation" placeholder="请输入" />
+				</view>
+
+				<view class="form-item">
+					<text class="label">起始道路</text>
+					<input class="input" v-model="formData.startRoad" placeholder="请输入" />
+				</view>
+
+				<view class="form-item">
+					<text class="label">终止道路</text>
+					<input class="input" v-model="formData.endRoad" placeholder="请输入" />
+				</view>
+
+				<view class="form-item">
+					<text class="label">检查人员</text>
+					<input class="input" v-model="formData.inspector" placeholder="请输入" />
+				</view>
+
+				<view class="form-item">
+					<text class="label">探测人员</text>
+					<input class="input" v-model="formData.detector" placeholder="请输入" />
+				</view>
+
+				<view class="form-item">
+					<text class="label">备注</text>
+					<input class="input" v-model="formData.remark" placeholder="请输入" />
 				</view>
 			</view>
 		</scroll-view>
@@ -170,15 +205,23 @@ export default {
 				videoNumber: '',
 				startDepth: '',
 				endDepth: '',
-				buryType: '管块',
+				buryType: '',
+				buryTypeCustom: '',
 				length: '16.00',
 				diameter: '',
-				material: '塑料',
+				diameterCustom: '',
+				material: '',
+				materialCustom: '',
 				ownerUnit: '',
-				buildDate: '2010-5-10',
-				surveyDate: '2022-3-22',
+				buildDate: '',
+				surveyDate: '',
 				municipalOffice: '',
-				roadLocation: ''
+				roadLocation: '',
+				startRoad: '',
+				endRoad: '',
+				inspector: '',
+				detector: '',
+				remark: ''
 			},
 			// uni-data-select 数据格式
 			categoryOptionsData: [
@@ -196,14 +239,34 @@ export default {
 				{ text: '2', value: '2' }
 			],
 			buryTypeOptionsData: [
+				{ text: '直埋', value: '直埋' },
+				{ text: '管埋', value: '管埋' },
+				{ text: '架空', value: '架空' },
+				{ text: '方沟', value: '方沟' },
+				{ text: '拱形管沟', value: '拱形管沟' },
+				{ text: '矩形管沟', value: '矩形管沟' },
 				{ text: '管块', value: '管块' },
-				{ text: '直埋', value: '直埋' }
+				{ text: '手动输入', value: '手动输入' }
 			],
 			materialOptionsData: [
+				{ text: '砼', value: '砼' },
+				{ text: '钢筋混泥土', value: '钢筋混泥土' },
+				{ text: '铸铁', value: '铸铁' },
+				{ text: '砖石', value: '砖石' },
+				{ text: '钢', value: '钢' },
+				{ text: '石棉', value: '石棉' },
+				{ text: 'PE', value: 'PE' },
+				{ text: 'PVC', value: 'PVC' },
+				{ text: 'PE波纹管', value: 'PE波纹管' },
 				{ text: '塑料', value: '塑料' },
-				{ text: '钢材', value: '钢材' },
-				{ text: '混凝土', value: '混凝土' },
-				{ text: '铸铁', value: '铸铁' }
+				{ text: '管线材质', value: '管线材质' },
+				{ text: '手动输入', value: '手动输入' }
+			],
+			diameterOptionsData: [
+				{ text: '100x100', value: '100x100' },
+				{ text: '200x200', value: '200x200' },
+				{ text: '300x300', value: '300x300' },
+				{ text: '手动输入', value: '手动输入' }
 			],
 			startPointData: null,
 			endPointData: null
@@ -289,6 +352,32 @@ export default {
 		},
 		onSurveyDateChange(e) {
 			this.formData.surveyDate = e.detail.value;
+		},
+		onBuryTypeChange(e) {
+			console.log('埋设类型变更:', e);
+			if (e === '手动输入') {
+				this.formData.buryTypeCustom = '';
+			}
+		},
+		onMaterialChange(e) {
+			console.log('材质变更:', e);
+			if (e === '手动输入') {
+				this.formData.materialCustom = '';
+			}
+		},
+		onDiameterChange(e) {
+			console.log('管径变更:', e);
+			if (e === '手动输入') {
+				this.formData.diameterCustom = '';
+			}
+		},
+		
+		getCurrentDate() {
+			const now = new Date();
+			const year = now.getFullYear();
+			const month = String(now.getMonth() + 1).padStart(2, '0');
+			const day = String(now.getDate()).padStart(2, '0');
+			return `${year}-${month}-${day}`;
 		}
 	}
 }
@@ -300,6 +389,7 @@ export default {
 	flex-direction: column;
 	height: 100vh;
 	background-color: #007AFF;
+	overflow: hidden;
 }
 
 .header {
@@ -348,14 +438,28 @@ export default {
 .content {
 	flex: 1;
 	padding: 20rpx;
-	background-color: #ffffff;
+	background-color: #F5F5F5;
+	box-sizing: border-box;
 }
+
+/* #ifdef APP-PLUS */
+.content {
+	height: calc(100vh - 168rpx);
+}
+/* #endif */
+
+/* #ifndef APP-PLUS */
+.content {
+	height: calc(100vh - 88rpx);
+}
+/* #endif */
 
 .form-section {
 	background-color: #FFFFFF;
 	border-radius: 16rpx;
 	margin-bottom: 20rpx;
 	padding: 30rpx;
+	box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.1);
 }
 
 .section-title {
@@ -373,21 +477,32 @@ export default {
 	min-height: 80rpx;
 }
 
+.form-item:last-child {
+	margin-bottom: 0;
+}
+
 .label {
 	width: 200rpx;
 	font-size: 28rpx;
-	color: #666666;
+	color: #333333;
+	font-weight: 500;
 }
 
 .input {
 	flex: 1;
 	height: 80rpx;
 	border: 2rpx solid #E5E5E5;
-	border-radius: 8rpx;
-	padding: 0 20rpx;
+	border-radius: 12rpx;
+	padding: 0 24rpx;
 	font-size: 28rpx;
 	color: #333333;
 	box-sizing: border-box;
+	background-color: #FAFAFA;
+}
+
+.input:focus {
+	border-color: #007AFF;
+	background-color: #FFFFFF;
 }
 
 .picker {
@@ -397,13 +512,14 @@ export default {
 .picker-text {
 	height: 80rpx;
 	border: 2rpx solid #E5E5E5;
-	border-radius: 8rpx;
-	padding: 0 20rpx;
+	border-radius: 12rpx;
+	padding: 0 24rpx;
 	display: flex;
 	flex-direction: row;
 	align-items: center;
 	justify-content: space-between;
 	box-sizing: border-box;
+	background-color: #FAFAFA;
 }
 
 .picker-text text:first-child {
@@ -416,69 +532,105 @@ export default {
 	color: #999999;
 }
 
-/* 新的选择器包装样式 */
+/* 选择器包装样式 */
 .select-wrapper-new {
 	flex: 1;
-	display: flex;
-	flex-direction: row;
-	align-items: center;
-	justify-content: flex-end;
 	position: relative;
+	height: 80rpx;
+	border: 2rpx solid #E5E5E5;
+	border-radius: 12rpx;
+	background-color: #FAFAFA;
+	display: flex;
+	align-items: center;
+}
+
+.select-wrapper-new:focus-within {
+	border-color: #007AFF;
+	background-color: #FFFFFF;
 }
 
 /* uni-data-select 自定义样式 */
 .uni-select-custom {
 	flex: 1;
-	display: flex;
-	justify-content: flex-end;
+	height: 100%;
 }
 
 .uni-select-custom ::v-deep .uni-stat__select {
 	width: 100%;
-	justify-content: flex-end;
+	height: 100%;
 }
 
 .uni-select-custom ::v-deep .uni-select {
 	border: none;
-	padding: 0;
-	min-height: auto;
+	padding: 0 24rpx;
+	min-height: 76rpx;
+	height: 76rpx;
 	background: transparent;
-	justify-content: flex-end;
+	border-radius: 0;
 }
 
 .uni-select-custom ::v-deep .uni-select__input-box {
-	justify-content: flex-end;
+	height: 100%;
 	align-items: center;
+	justify-content: space-between;
 }
 
 .uni-select-custom ::v-deep .uni-select__input-text {
-	text-align: right;
 	color: #333333;
 	font-size: 28rpx;
+	text-align: left;
 }
 
 .uni-select-custom ::v-deep .uni-select__input-placeholder {
-	text-align: right;
 	color: #999999;
 	font-size: 28rpx;
+	text-align: left;
 }
 
 .uni-select-custom ::v-deep .uni-select__selector {
 	right: 0;
 	left: auto;
-	min-width: 200rpx;
+	min-width: 300rpx;
+	max-height: 400rpx;
+	border-radius: 12rpx;
+	box-shadow: 0 4rpx 20rpx rgba(0, 0, 0, 0.15);
 }
 
-/* 隐藏uni-data-select自带的箭头 */
-.uni-select-custom ::v-deep .uni-icons {
-	display: none !important;
+.uni-select-custom ::v-deep .uni-select__selector-item {
+	padding: 20rpx 24rpx;
+	font-size: 28rpx;
+}
+
+.uni-select-custom ::v-deep .uni-select__selector-item:hover {
+	background-color: #F0F8FF;
 }
 
 /* 自定义箭头样式 */
 .select-wrapper-new .arrow-icon {
-	font-size: 32rpx;
-	color: #cccccc;
+	font-size: 28rpx;
+	color: #999999;
 	transform: rotate(90deg);
+	margin-right: 24rpx;
+	transition: transform 0.3s ease;
+}
+
+.select-wrapper-new.active .arrow-icon {
+	transform: rotate(270deg);
+}
+
+/* uni-data-select 箭头图标样式调整 */
+.uni-select-custom ::v-deep .uni-icons {
+	font-size: 24rpx !important;
+	color: #999999 !important;
+}
+
+.uni-select-custom ::v-deep .uni-select__input-box .uni-icons {
 	margin-left: 16rpx;
+}
+
+/* 确保箭头图标正确显示 */
+.uni-select-custom ::v-deep .uni-select__input-box .uni-icons:before {
+	content: "▼" !important;
+	font-family: inherit !important;
 }
 </style>
