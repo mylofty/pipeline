@@ -13,6 +13,7 @@
         @toggle-expand-all="toggleExpandAll"
         @toggle-category="toggleCategory"
         @select-sub-layer="selectSubLayer"
+        @toggle-expand="toggleExpand"
         @get-display-text="getDisplayText"
       />
 
@@ -292,6 +293,16 @@ export default {
       })
       uni.showToast({
         title: shouldExpandAll ? '已展开所有分类' : '已收起所有分类',
+        icon: 'none'
+      })
+    }
+
+    const toggleExpand = (categoryIndex) => {
+      const category = layerOptions.value[categoryIndex]
+      category.expanded = !category.expanded
+      
+      uni.showToast({
+        title: category.expanded ? `已展开${category.name}` : `已收起${category.name}`,
         icon: 'none'
       })
     }
@@ -1220,6 +1231,7 @@ export default {
       selectLayer,
       toggleSelectAll,
       toggleExpandAll,
+      toggleExpand,
       toggleCategory,
       isCategorySelected,
       isCategoryFullySelected,

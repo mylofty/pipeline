@@ -13,20 +13,21 @@
       </div>
       <div class="dropdown-divider"></div>
       <div v-for="(category, categoryIndex) in layerOptions" :key="categoryIndex" class="category-group">
-        <div class="dropdown-item category-item" @click="handleToggleCategory(categoryIndex)">
+        <div class="dropdown-item category-item">
           <div class="checkbox-wrapper">
-            <text class="checkbox" :class="{ 
+            <text class="checkbox" :class="{
               checked: isCategorySelected(categoryIndex),
               'partially-checked': isCategorySelected(categoryIndex) && !isCategoryFullySelected(categoryIndex)
-            }">{{
+            }" @click="handleToggleCategory(categoryIndex)">{{
               isCategoryFullySelected(categoryIndex) ? '✓' : (isCategorySelected(categoryIndex) ? '◐' : '') }}</text>
-            <text class="layer-name category-name">{{ category.name }}</text>
-            <text class="expand-arrow" :class="{ expanded: category.expanded }">▼</text>
+            <text class="layer-name category-name" @click="handleToggleExpand(categoryIndex)">{{ category.name }}</text>
+            <text class="expand-arrow" :class="{ expanded: category.expanded }"
+              @click="handleToggleExpand(categoryIndex)">▼</text>
           </div>
         </div>
         <div v-if="category.expanded" class="subcategory-list">
-          <div v-for="(child, childIndex) in category.children" :key="childIndex" 
-               class="dropdown-item subcategory-item" @click="handleSelectSubLayer(categoryIndex, childIndex)">
+          <div v-for="(child, childIndex) in category.children" :key="childIndex" class="dropdown-item subcategory-item"
+            @click="handleSelectSubLayer(categoryIndex, childIndex)">
             <div class="checkbox-wrapper">
               <text class="checkbox" :class="{ checked: child.selected }">{{
                 child.selected ? '✓' : '' }}</text>
@@ -70,7 +71,7 @@ export default {
           }
         })
       })
-      
+
       if (selectedItems.length === 0) {
         return '请选择图层'
       } else if (selectedItems.length === 1) {
@@ -95,6 +96,9 @@ export default {
     },
     handleSelectSubLayer(categoryIndex, childIndex) {
       this.$emit('select-sub-layer', categoryIndex, childIndex)
+    },
+    handleToggleExpand(categoryIndex) {
+      this.$emit('toggle-expand', categoryIndex)
     },
     isCategorySelected(categoryIndex) {
       const category = this.layerOptions[categoryIndex]
