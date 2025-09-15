@@ -694,9 +694,51 @@ export default {
 
     // 测量工具
     const handleMeasure = (longitude, latitude) => {
+      // 添加测量点
       measurePoints.value.push({ longitude, latitude })
+      
+      // 为每个测量点添加圆点标记
+      const pointMarker = {
+        id: `measure_point_${measurePoints.value.length}`,
+        longitude,
+        latitude,
+        iconPath: '/static/icons/location.svg', // 如果没有图标，会显示默认标记
+        width: 20,
+        height: 20,
+        callout: {
+          content: `点${measurePoints.value.length}`,
+          color: '#ffffff',
+          fontSize: 12,
+          borderRadius: 4,
+          bgColor: '#007AFF',
+          padding: 4,
+          display: 'ALWAYS'
+        }
+      }
+      markers.value.push(pointMarker)
 
+      // 从第二个点开始画线
       if (measurePoints.value.length >= 2) {
+        // 创建连接线
+        const measureLine = {
+          points: measurePoints.value.map(point => ({
+            longitude: point.longitude,
+            latitude: point.latitude
+          })),
+          color: '#FF6B35',
+          width: 3,
+          dottedLine: false,
+          arrowLine: false
+        }
+        
+        // 移除之前的测量线（如果存在）
+        polylines.value = polylines.value.filter(line => !line.isMeasureLine)
+        
+        // 添加新的测量线
+        measureLine.isMeasureLine = true
+        polylines.value.push(measureLine)
+
+        // 计算总距离
         let totalDistance = 0
         for (let i = 1; i < measurePoints.value.length; i++) {
           const distance = calculateDistance(
@@ -708,9 +750,33 @@ export default {
           totalDistance += distance
         }
 
-        measureResult.text = `总长度: ${totalDistance.toFixed(2)}米`
+        // 显示测量结果
+        measureResult.text = `总长度: ${totalDistance.toFixed(2)}米 (${measurePoints.value.length}个点)`
         measureResult.type = 'distance'
         measureResult.show = true
+        
+        // 显示当前段距离的提示
+        if (measurePoints.value.length > 2) {
+          const lastSegmentDistance = calculateDistance(
+            measurePoints.value[measurePoints.value.length - 2].latitude,
+            measurePoints.value[measurePoints.value.length - 2].longitude,
+            measurePoints.value[measurePoints.value.length - 1].latitude,
+            measurePoints.value[measurePoints.value.length - 1].longitude
+          )
+          
+          uni.showToast({
+            title: `本段: ${lastSegmentDistance.toFixed(2)}米`,
+            icon: 'none',
+            duration: 1500
+          })
+        }
+      } else {
+        // 第一个点的提示
+        uni.showToast({
+          title: '已添加起点，请点击下一个位置',
+          icon: 'none',
+          duration: 1500
+        })
       }
     }
 
@@ -1002,8 +1068,26 @@ export default {
 
     // 清除测量结果
     const clearMeasure = () => {
+      // 清除测量点数据
       measurePoints.value = []
+      
+      // 清除测量结果显示
       measureResult.show = false
+      
+      // 清除测量点标记（以 measure_point_ 开头的标记）
+      markers.value = markers.value.filter(marker => 
+        !marker.id || !marker.id.toString().startsWith('measure_point_')
+      )
+      
+      // 清除测量线条（标记为 isMeasureLine 的线条）
+      polylines.value = polylines.value.filter(line => !line.isMeasureLine)
+      
+      // 显示清除成功提示
+      uni.showToast({
+        title: '测量数据已清除',
+        icon: 'success',
+        duration: 1000
+      })
     }
 
     //关闭测量结果
