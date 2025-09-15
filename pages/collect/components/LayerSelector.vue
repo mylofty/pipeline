@@ -157,7 +157,7 @@ export default {
   border-radius: 6px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   z-index: 1000;
-  max-height: 300px;
+  max-height: 415px;
   overflow-y: auto;
 }
 
