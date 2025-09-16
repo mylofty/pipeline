@@ -366,6 +366,4 @@ export default {
 		line-height: 1;
 	}
 }
-
-
-// 自定义折叠组件样式已在CollapseItem组件中定义</style>
+</style>
