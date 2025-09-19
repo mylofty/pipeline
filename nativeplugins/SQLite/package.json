@@ -1,0 +1,23 @@
+{
+  "name": "SQLite",
+  "id": "SQLite",
+  "version": "1.0.0",
+  "description": "SQLite数据库插件",
+  "main": "./index.js",
+  "_dp_type": "nativeplugin",
+  "_dp_nativeplugin": {
+    "android": {
+      "plugins": [
+        {
+          "type": "module",
+          "name": "SQLite",
+          "class": "io.dcloud.uniplugin.sqlite.SQLiteModule"
+        }
+      ],
+      "integrateType": "aar",
+      "dependencies": [
+        "androidx.sqlite:sqlite:2.1.0"
+      ]
+    }
+  }
+}

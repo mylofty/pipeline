@@ -73,6 +73,66 @@
 				</view>
 			</view>
 			
+			<!-- 数据库测试工具 -->
+			<view class="menu-section">
+				<text class="section-title">数据库测试工具</text>
+				<view class="menu-list">
+					<view class="menu-item" @click="navigateTo('/pages/test/simple-database-check')">
+						<image src="/static/icons/database-check.png" class="menu-icon"></image>
+						<view class="menu-content">
+							<text class="menu-title">数据库状态检查</text>
+							<text class="menu-desc">快速检查数据库连接和数据状态</text>
+						</view>
+						<text class="menu-arrow">></text>
+					</view>
+					
+					<view class="menu-item" @click="navigateTo('/pages/test/database-viewer')">
+						<image src="/static/icons/database-viewer.png" class="menu-icon"></image>
+						<view class="menu-content">
+							<text class="menu-title">数据库内容查看器</text>
+							<text class="menu-desc">查看表数据和详细诊断</text>
+						</view>
+						<text class="menu-arrow">></text>
+					</view>
+					
+					<view class="menu-item" @click="navigateTo('/pages/settings/database-file')">
+						<image src="/static/icons/database-file.png" class="menu-icon"></image>
+						<view class="menu-content">
+							<text class="menu-title">数据库文件管理</text>
+							<text class="menu-desc">管理数据库文件和备份</text>
+						</view>
+						<text class="menu-arrow">></text>
+					</view>
+					
+					<view class="menu-item" @click="navigateTo('/pages/test/quick-test')">
+						<image src="/static/icons/quick-test.png" class="menu-icon"></image>
+						<view class="menu-content">
+							<text class="menu-title">快速测试</text>
+							<text class="menu-desc">运行数据库功能测试</text>
+						</view>
+						<text class="menu-arrow">></text>
+					</view>
+					
+					<view class="menu-item" @click="navigateTo('/pages/test/simple-db-test')">
+						<image src="/static/icons/simple-test.png" class="menu-icon"></image>
+						<view class="menu-content">
+							<text class="menu-title">简单数据库测试</text>
+							<text class="menu-desc">基础数据库功能测试</text>
+						</view>
+						<text class="menu-arrow">></text>
+					</view>
+					
+					<view class="menu-item" @click="navigateTo('/pages/test/database-reset')" style="border-left: 3px solid #dc3545;">
+						<image src="/static/icons/database-reset.png" class="menu-icon"></image>
+						<view class="menu-content">
+							<text class="menu-title" style="color: #dc3545; font-weight: bold;">🔄 数据库强制重置</text>
+							<text class="menu-desc">解决缓存问题，强制使用原始数据</text>
+						</view>
+						<text class="menu-arrow">></text>
+					</view>
+				</view>
+			</view>
+			
 			<!-- 帮助与支持 -->
 			<view class="menu-section">
 				<text class="section-title">帮助与支持</text>
