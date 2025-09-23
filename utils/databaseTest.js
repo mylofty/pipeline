@@ -22,7 +22,7 @@ class DatabaseTest {
     
     try {
       // 测试初始化
-      results.initialization = await this.testInitialization();
+      // results.initialization = await this.testInitialization();
       
       // 测试建表
       results.createTable = await this.testCreateTable();

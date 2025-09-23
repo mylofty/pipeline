@@ -107,6 +107,10 @@ export default {
       dbType: '未知',
       dbStatus: '未初始化',
       tableNames: [
+              'project_manager',
+      'pipe_point_entity', 
+	  'pipe_line_entity',
+      'pipe_Line_type_entity',
         'projects', 'pipe_points', 'pipe_lines', 
         'pipe_categories', 'attribute_settings', 'features',
         'virtual_lines', 'shared_pipes'

@@ -100,12 +100,6 @@
 			}
 		},
 		{
-			"path": "pages/settings/database-status",
-			"style": {
-				"navigationBarTitleText": "数据库状态"
-			}
-		},
-		{
 			"path": "pages/test/simple-db-test",
 			"style": {
 				"navigationBarTitleText": "简单数据库测试"
@@ -118,27 +112,9 @@
 			}
 		},
 		{
-			"path": "pages/settings/database-file",
-			"style": {
-				"navigationBarTitleText": "数据库文件管理"
-			}
-		},
-		{
 			"path": "pages/test/database-viewer",
 			"style": {
 				"navigationBarTitleText": "数据库内容查看器"
-			}
-		},
-		{
-			"path": "pages/test/simple-database-check",
-			"style": {
-				"navigationBarTitleText": "数据库状态检查"
-			}
-		},
-		{
-			"path": "pages/test/database-reset",
-			"style": {
-				"navigationBarTitleText": "数据库强制重置"
 			}
 		}
 	],
