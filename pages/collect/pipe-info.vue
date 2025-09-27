@@ -72,6 +72,18 @@
 				</view>
 			</view>
 
+			<!-- 经度 -->
+			<view class="form-item">
+				<text class="label">经度</text>
+				<input class="input" :value="longitude.toFixed(6)" placeholder="经度" disabled />
+			</view>
+
+			<!-- 纬度 -->
+			<view class="form-item">
+				<text class="label">纬度</text>
+				<input class="input" :value="latitude.toFixed(6)" placeholder="纬度" disabled />
+			</view>
+
 			<!-- 特征 -->
 			<view class="form-item">
 				<text class="label">特征</text>
