@@ -7,6 +7,7 @@
 <script>
 	import database from '@/utils/database.js';
 	import databaseTest from '@/utils/databaseTest.js';
+	import { pipeTypeEntityServiceTest } from '@/services/pipeTypeEntityService.test.js';
 	
 	export default {
 		async onLaunch() {
@@ -27,6 +28,7 @@
 						setTimeout(async () => {
 							try {
 								await databaseTest.runAllTests();
+								await pipeTypeEntityServiceTest.runFullTest();
 							} catch (testError) {
 								console.error('数据库测试失败:', testError);
 							}
