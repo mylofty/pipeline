@@ -1,71 +1,89 @@
 <template>
-  <view class="pipe-type-container">
-    <!-- 页面标题 -->
-    <view class="page-header">
-      <text class="page-title">管类设置</text>
-      <button class="add-btn" @click="showAddDialog">新增小类</button>
-    </view>
-
-    <!-- 管类列表 -->
-    <view class="pipe-type-list">
-      <uni-collapse v-if="pipeTypes.length > 0">
-        <uni-collapse-item 
-          v-for="mainCategory in pipeTypes" 
-          :key="mainCategory.pid"
-          :title="mainCategory.typeName"
-          :name="mainCategory.typeCode"
-        >
-          <template #title>
-            <view class="main-category-title">
-              <view class="color-indicator" :style="{ backgroundColor: mainCategory.colorCode || '#999' }"></view>
-              <text class="category-name">{{ mainCategory.typeName }}</text>
-              <text class="category-code">({{ mainCategory.typeCode }})</text>
-            </view>
-          </template>
-          
-          <uni-list v-if="mainCategory.children && mainCategory.children.length > 0">
-            <uni-list-item 
-              v-for="subCategory in mainCategory.children"
-              :key="subCategory.pid"
-            >
-              <template #header>
-                <view class="sub-category-item">
-                  <view class="color-indicator small" :style="{ backgroundColor: subCategory.colorCode || '#999' }"></view>
-                  <view class="category-info">
-                    <text class="category-name">{{ subCategory.typeName }}</text>
-                    <text class="category-code">{{ subCategory.typeCode }}</text>
-                  </view>
-                  <view class="action-buttons">
-                    <button class="edit-btn" @click.stop="editSubCategory(subCategory)">编辑</button>
-                    <button class="delete-btn" @click.stop="deleteSubCategory(subCategory)">删除</button>
-                  </view>
-                </view>
-              </template>
-            </uni-list-item>
-          </uni-list>
-          
-          <view v-else class="empty-sub-category">
-            <text>暂无小类</text>
-          </view>
-        </uni-collapse-item>
-      </uni-collapse>
-      
-      <view v-else class="empty-data">
-        <text>暂无管类数据</text>
+  <view class="container">
+    <!-- 顶部导航栏 -->
+    <view class="navbar">
+      <view class="nav-left" @click="goBack">
+        <uni-icons type="left" size="20" color="#fff"></uni-icons>
+      </view>
+      <view class="nav-title">管类设置</view>
+      <view class="nav-right" @click="showAddDialog">
+        <uni-icons type="plus" size="20" color="#fff"></uni-icons>
       </view>
     </view>
 
-    <!-- 新增/编辑小类弹窗 -->
-    <uni-popup ref="addDialog" type="center">
-      <view class="dialog-content">
+    <!-- 内容区域 -->
+    <view class="content">
+      <!-- 管类列表 -->
+      <view class="category-list">
+        <view v-for="(category, categoryIndex) in pipeTypes" :key="category.pid" class="category-section">
+          <!-- 大类标题 -->
+          <view class="main-category" @click="toggleCategory(categoryIndex)">
+            <view class="category-left">
+              <view class="category-icon">
+                <uni-icons type="folder" size="20" color="#666"></uni-icons>
+              </view>
+              <view class="category-info">
+                <text class="category-name">{{ category.typeName }}</text>
+                <text class="category-code">{{ category.typeCode }}</text>
+              </view>
+            </view>
+            <view class="category-right">
+              <text class="sub-count">{{ category.children ? category.children.length : 0 }}项</text>
+              <uni-icons :type="category.expanded ? 'up' : 'down'" size="16" color="#999"></uni-icons>
+            </view>
+          </view>
+
+          <!-- 小类列表 -->
+          <view v-if="category.expanded" class="sub-category-list">
+            <view v-if="category.children && category.children.length > 0">
+              <view v-for="(subcat, subcatIndex) in category.children" :key="subcat.pid" class="sub-category-item">
+                <view class="sub-left">
+                  <view class="color-dot" :style="{backgroundColor: subcat.colorCode || '#999'}"></view>
+                  <view class="sub-info">
+                    <text class="sub-name">{{ subcat.typeName }}</text>
+                    <text class="sub-code">{{ subcat.typeCode }}</text>
+                  </view>
+                </view>
+                <view class="sub-actions">
+                  <view class="action-btn edit" @click="editSubCategory(subcat)">
+                    <uni-icons type="compose" size="16" color="#007AFF"></uni-icons>
+                  </view>
+                  <view class="action-btn delete" @click="deleteSubCategory(subcat)">
+                    <uni-icons type="trash" size="16" color="#FF3B30"></uni-icons>
+                  </view>
+                </view>
+              </view>
+            </view>
+            <view v-else class="empty-sub">
+              <uni-icons type="info" size="16" color="#ccc"></uni-icons>
+              <text class="empty-text">暂无小类，点击右上角添加</text>
+            </view>
+          </view>
+        </view>
+      </view>
+
+      <!-- 空状态 -->
+      <view v-if="pipeTypes.length === 0" class="empty-state">
+        <uni-icons type="folder" size="60" color="#ddd"></uni-icons>
+        <text class="empty-title">暂无管类数据</text>
+        <text class="empty-desc">请联系管理员添加管类数据</text>
+      </view>
+    </view>
+
+    <!-- 新增/编辑弹窗 -->
+    <uni-popup ref="addDialog" type="center" :mask-click="false">
+      <view class="dialog">
         <view class="dialog-header">
           <text class="dialog-title">{{ isEdit ? '编辑小类' : '新增小类' }}</text>
+          <view class="close-btn" @click="closeDialog">
+            <uni-icons type="close" size="18" color="#999"></uni-icons>
+          </view>
         </view>
         
         <view class="dialog-body">
-          <!-- 选择大类 -->
-          <view class="form-item">
-            <text class="form-label">所属大类</text>
+          <!-- 所属大类 -->
+          <view class="form-group">
+            <text class="label">所属大类</text>
             <picker 
               :value="selectedMainCategoryIndex" 
               :range="mainCategoryOptions" 
@@ -73,53 +91,54 @@
               @change="onMainCategoryChange"
               :disabled="isEdit"
             >
-              <view class="picker-input">
-                {{ formData.parentTypeCode ? getMainCategoryName(formData.parentTypeCode) : '请选择大类' }}
+              <view class="picker-wrapper">
+                <text class="picker-text">{{ formData.parentTypeCode ? getMainCategoryName(formData.parentTypeCode) : '请选择大类' }}</text>
+                <uni-icons type="down" size="14" color="#999"></uni-icons>
               </view>
             </picker>
           </view>
           
           <!-- 小类名称 -->
-          <view class="form-item">
-            <text class="form-label">小类名称</text>
+          <view class="form-group">
+            <text class="label">小类名称</text>
             <input 
               v-model="formData.typeName" 
-              class="form-input" 
+              class="input" 
               placeholder="请输入小类名称"
               maxlength="50"
             />
           </view>
           
           <!-- 小类代码 -->
-          <view class="form-item">
-            <text class="form-label">小类代码</text>
+          <view class="form-group">
+            <text class="label">小类代码</text>
             <input 
               v-model="formData.typeCode" 
-              class="form-input" 
+              class="input" 
               placeholder="请输入小类代码"
               maxlength="20"
             />
           </view>
           
           <!-- 颜色选择 -->
-          <view class="form-item">
-            <text class="form-label">颜色代码</text>
-            <view class="color-picker-container">
-              <button class="color-picker-btn" @click="openColorPicker">选择颜色</button>
-              <view class="color-preview" :style="{ backgroundColor: formData.colorCode || '#FF0000' }"></view>
-              <text class="color-code-text">{{ formData.colorCode || '#FF0000' }}</text>
+          <view class="form-group">
+            <text class="label">颜色</text>
+            <view class="color-selector" @click="openColorPicker">
+              <view class="color-preview" :style="{backgroundColor: formData.colorCode || '#FF0000'}"></view>
+              <text class="color-value">{{ formData.colorCode || '#FF0000' }}</text>
+              <uni-icons type="right" size="14" color="#999"></uni-icons>
             </view>
           </view>
         </view>
         
         <view class="dialog-footer">
-          <button class="cancel-btn" @click="closeDialog">取消</button>
-          <button class="confirm-btn" @click="submitForm">{{ isEdit ? '更新' : '添加' }}</button>
+          <button class="btn cancel" @click="closeDialog">取消</button>
+          <button class="btn confirm" @click="submitForm">{{ isEdit ? '保存' : '新增' }}</button>
         </view>
       </view>
     </uni-popup>
 
-    <!-- 颜色选择器组件 -->
+    <!-- 颜色选择器 -->
     <t-color-picker 
       ref="colorPicker" 
       :color="colorObject" 
@@ -178,6 +197,16 @@ export default {
   },
   
   methods: {
+    // 返回上一页
+    goBack() {
+      uni.navigateBack();
+    },
+
+    // 切换大类展开状态
+    toggleCategory(index) {
+      this.$set(this.pipeTypes[index], 'expanded', !this.pipeTypes[index].expanded);
+    },
+
     // 加载数据
     async loadData() {
       uni.showLoading({ title: '加载中...' });
@@ -186,7 +215,11 @@ export default {
         // 加载带层级结构的管类数据
         const structureResult = await pipeTypeEntityService.getAllPipeTypesWithStructure();
         if (structureResult.success) {
-          this.pipeTypes = structureResult.data;
+          // 直接使用数据库返回的原始顺序，不进行任何排序
+          this.pipeTypes = structureResult.data.map(item => ({
+            ...item,
+            expanded: false // 默认收起
+          }));
         } else {
           uni.showToast({
             title: structureResult.message,
@@ -197,6 +230,7 @@ export default {
         // 加载大类列表
         const mainResult = await pipeTypeEntityService.getMainCategories();
         if (mainResult.success) {
+          // 直接使用数据库返回的原始顺序，不进行任何排序
           this.mainCategories = mainResult.data;
         } else {
           uni.showToast({
@@ -423,232 +457,386 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-.pipe-type-container {
-  padding: 20rpx;
-  background-color: #f5f5f5;
+.container {
+  background-color: #f8f9fa;
   min-height: 100vh;
 }
 
-.page-header {
+/* 导航栏 */
+.navbar {
   display: flex;
+  align-items: center;
   justify-content: space-between;
-  align-items: center;
-  margin-bottom: 30rpx;
-  padding: 20rpx;
-  background-color: #fff;
-  border-radius: 10rpx;
-  box-shadow: 0 2rpx 10rpx rgba(0, 0, 0, 0.1);
-}
-
-.page-title {
-  font-size: 36rpx;
-  font-weight: bold;
-  color: #333;
-}
-
-.add-btn {
-  background-color: #007aff;
+  height: 88rpx;
+  padding: 0 32rpx;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: #fff;
-  border: none;
-  border-radius: 8rpx;
-  padding: 16rpx 32rpx;
-  font-size: 28rpx;
-}
-
-.pipe-type-list {
-  background-color: #fff;
-  border-radius: 10rpx;
-  overflow: hidden;
-  box-shadow: 0 2rpx 10rpx rgba(0, 0, 0, 0.1);
-}
-
-.main-category-title {
-  display: flex;
-  align-items: center;
-  padding: 20rpx 0;
-}
-
-.color-indicator {
-  width: 30rpx;
-  height: 30rpx;
-  border-radius: 50%;
-  margin-right: 20rpx;
-  border: 2rpx solid #ddd;
   
-  &.small {
-    width: 24rpx;
-    height: 24rpx;
-    margin-right: 16rpx;
+  .nav-left, .nav-right {
+    width: 60rpx;
+    height: 60rpx;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: background-color 0.3s;
+    
+    &:active {
+      background-color: rgba(255, 255, 255, 0.1);
+    }
+  }
+  
+  .nav-title {
+    font-size: 36rpx;
+    font-weight: 600;
   }
 }
 
-.category-name {
-  font-size: 32rpx;
-  font-weight: bold;
-  color: #333;
-  margin-right: 16rpx;
+/* 内容区域 */
+.content {
+  padding: 24rpx;
 }
 
-.category-code {
-  font-size: 24rpx;
-  color: #999;
+/* 分类列表 */
+.category-list {
+  .category-section {
+    margin-bottom: 24rpx;
+    background: #fff;
+    border-radius: 16rpx;
+    overflow: hidden;
+    box-shadow: 0 4rpx 20rpx rgba(0, 0, 0, 0.08);
+  }
 }
 
-.sub-category-item {
+/* 主分类 */
+.main-category {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 20rpx 0;
+  padding: 32rpx;
+  background: #fff;
+  transition: background-color 0.3s;
+  
+  &:active {
+    background-color: #f8f9fa;
+  }
+  
+  .category-left {
+    display: flex;
+    align-items: center;
+    flex: 1;
+    
+    .category-icon {
+      width: 48rpx;
+      height: 48rpx;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #f0f2f5;
+      border-radius: 12rpx;
+      margin-right: 24rpx;
+    }
+    
+    .category-info {
+      .category-name {
+        display: block;
+        font-size: 32rpx;
+        font-weight: 600;
+        color: #1a1a1a;
+        margin-bottom: 8rpx;
+      }
+      
+      .category-code {
+        font-size: 24rpx;
+        color: #8e8e93;
+      }
+    }
+  }
+  
+  .category-right {
+    display: flex;
+    align-items: center;
+    
+    .sub-count {
+      font-size: 24rpx;
+      color: #8e8e93;
+      margin-right: 16rpx;
+    }
+  }
 }
 
-.category-info {
+/* 子分类列表 */
+.sub-category-list {
+  border-top: 1rpx solid #f0f0f0;
+  background: #fafafa;
+  
+  .sub-category-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 24rpx 32rpx;
+    border-bottom: 1rpx solid #f0f0f0;
+    transition: background-color 0.3s;
+    
+    &:last-child {
+      border-bottom: none;
+    }
+    
+    &:active {
+      background-color: #f0f0f0;
+    }
+    
+    .sub-left {
+      display: flex;
+      align-items: center;
+      flex: 1;
+      
+      .color-dot {
+        width: 24rpx;
+        height: 24rpx;
+        border-radius: 50%;
+        margin-right: 20rpx;
+        border: 2rpx solid #fff;
+        box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.15);
+      }
+      
+      .sub-info {
+        .sub-name {
+          display: block;
+          font-size: 28rpx;
+          color: #1a1a1a;
+          margin-bottom: 6rpx;
+        }
+        
+        .sub-code {
+          font-size: 22rpx;
+          color: #8e8e93;
+        }
+      }
+    }
+    
+    .sub-actions {
+      display: flex;
+      gap: 16rpx;
+      
+      .action-btn {
+        width: 56rpx;
+        height: 56rpx;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 12rpx;
+        transition: all 0.3s;
+        
+        &.edit {
+          background: rgba(0, 122, 255, 0.1);
+          
+          &:active {
+            background: rgba(0, 122, 255, 0.2);
+            transform: scale(0.95);
+          }
+        }
+        
+        &.delete {
+          background: rgba(255, 59, 48, 0.1);
+          
+          &:active {
+            background: rgba(255, 59, 48, 0.2);
+            transform: scale(0.95);
+          }
+        }
+      }
+    }
+  }
+  
+  .empty-sub {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 60rpx 32rpx;
+    
+    .empty-text {
+      font-size: 26rpx;
+      color: #8e8e93;
+      margin-left: 12rpx;
+    }
+  }
+}
+
+/* 空状态 */
+.empty-state {
   display: flex;
   flex-direction: column;
-  flex: 1;
-  
-  .category-name {
-    font-size: 28rpx;
-    font-weight: normal;
-    margin-bottom: 8rpx;
-  }
-  
-  .category-code {
-    font-size: 22rpx;
-  }
-}
-
-.action-buttons {
-  display: flex;
-  gap: 16rpx;
-}
-
-.edit-btn, .delete-btn {
-  padding: 12rpx 24rpx;
-  border: none;
-  border-radius: 6rpx;
-  font-size: 24rpx;
-  min-width: 80rpx;
-}
-
-.edit-btn {
-  background-color: #007aff;
-  color: #fff;
-}
-
-.delete-btn {
-  background-color: #ff3b30;
-  color: #fff;
-}
-
-.empty-sub-category, .empty-data {
-  text-align: center;
-  padding: 60rpx 20rpx;
-  color: #999;
-  font-size: 28rpx;
-}
-
-.dialog-content {
-  width: 600rpx;
-  background-color: #fff;
-  border-radius: 16rpx;
-  overflow: hidden;
-}
-
-.dialog-header {
-  padding: 40rpx 40rpx 20rpx;
-  border-bottom: 1rpx solid #eee;
-}
-
-.dialog-title {
-  font-size: 32rpx;
-  font-weight: bold;
-  color: #333;
-}
-
-.dialog-body {
-  padding: 40rpx;
-}
-
-.form-item {
-  margin-bottom: 40rpx;
-}
-
-.form-label {
-  display: block;
-  font-size: 28rpx;
-  color: #333;
-  margin-bottom: 16rpx;
-}
-
-.form-input {
-  width: 100%;
-  height: 80rpx;
-  padding: 0 20rpx;
-  border: 2rpx solid #ddd;
-  border-radius: 8rpx;
-  font-size: 28rpx;
-  box-sizing: border-box;
-}
-
-.picker-input {
-  height: 80rpx;
-  line-height: 80rpx;
-  padding: 0 20rpx;
-  border: 2rpx solid #ddd;
-  border-radius: 8rpx;
-  font-size: 28rpx;
-  color: #333;
-  background-color: #fff;
-}
-
-.color-picker-container {
-  display: flex;
   align-items: center;
-  gap: 20rpx;
+  justify-content: center;
+  padding: 120rpx 32rpx;
+  
+  .empty-title {
+    font-size: 32rpx;
+    color: #8e8e93;
+    margin: 24rpx 0 12rpx;
+  }
+  
+  .empty-desc {
+    font-size: 26rpx;
+    color: #c7c7cc;
+  }
 }
 
-.color-picker-btn {
-  background-color: #007aff;
-  color: #fff;
-  border: none;
-  border-radius: 6rpx;
-  padding: 12rpx 24rpx;
-  font-size: 24rpx;
-}
-
-.color-preview {
-  width: 60rpx;
-  height: 60rpx;
-  border-radius: 8rpx;
-  border: 2rpx solid #ddd;
-}
-
-.color-code-text {
-  font-size: 24rpx;
-  color: #666;
-}
-
-.dialog-footer {
-  display: flex;
-  padding: 20rpx 40rpx 40rpx;
-  gap: 20rpx;
-}
-
-.cancel-btn, .confirm-btn {
-  flex: 1;
-  height: 80rpx;
-  border: none;
-  border-radius: 8rpx;
-  font-size: 28rpx;
-}
-
-.cancel-btn {
-  background-color: #f5f5f5;
-  color: #666;
-}
-
-.confirm-btn {
-  background-color: #007aff;
-  color: #fff;
+/* 弹窗样式 */
+.dialog {
+  width: 640rpx;
+  background: #fff;
+  border-radius: 24rpx;
+  overflow: hidden;
+  
+  .dialog-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 32rpx;
+    border-bottom: 1rpx solid #f0f0f0;
+    
+    .dialog-title {
+      font-size: 34rpx;
+      font-weight: 600;
+      color: #1a1a1a;
+    }
+    
+    .close-btn {
+      width: 48rpx;
+      height: 48rpx;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      transition: background-color 0.3s;
+      
+      &:active {
+        background-color: #f0f0f0;
+      }
+    }
+  }
+  
+  .dialog-body {
+    padding: 32rpx;
+    
+    .form-group {
+      margin-bottom: 32rpx;
+      
+      &:last-child {
+        margin-bottom: 0;
+      }
+      
+      .label {
+        display: block;
+        font-size: 28rpx;
+        color: #1a1a1a;
+        margin-bottom: 16rpx;
+        font-weight: 500;
+      }
+      
+      .input {
+        width: 100%;
+        height: 88rpx;
+        padding: 0 24rpx;
+        border: 2rpx solid #e5e5ea;
+        border-radius: 12rpx;
+        font-size: 28rpx;
+        color: #1a1a1a;
+        box-sizing: border-box;
+        transition: border-color 0.3s;
+        
+        &:focus {
+          border-color: #007aff;
+        }
+        
+        &::placeholder {
+          color: #c7c7cc;
+        }
+      }
+      
+      .picker-wrapper {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        height: 88rpx;
+        padding: 0 24rpx;
+        border: 2rpx solid #e5e5ea;
+        border-radius: 12rpx;
+        background: #fff;
+        
+        .picker-text {
+          font-size: 28rpx;
+          color: #1a1a1a;
+        }
+      }
+      
+      .color-selector {
+        display: flex;
+        align-items: center;
+        height: 88rpx;
+        padding: 0 24rpx;
+        border: 2rpx solid #e5e5ea;
+        border-radius: 12rpx;
+        background: #fff;
+        transition: border-color 0.3s;
+        
+        &:active {
+          border-color: #007aff;
+        }
+        
+        .color-preview {
+          width: 48rpx;
+          height: 48rpx;
+          border-radius: 8rpx;
+          margin-right: 20rpx;
+          border: 2rpx solid #e5e5ea;
+        }
+        
+        .color-value {
+          flex: 1;
+          font-size: 28rpx;
+          color: #1a1a1a;
+        }
+      }
+    }
+  }
+  
+  .dialog-footer {
+    display: flex;
+    padding: 24rpx 32rpx 32rpx;
+    gap: 24rpx;
+    
+    .btn {
+      flex: 1;
+      height: 88rpx;
+      border: none;
+      border-radius: 12rpx;
+      font-size: 30rpx;
+      font-weight: 500;
+      transition: all 0.3s;
+      
+      &.cancel {
+        background: #f2f2f7;
+        color: #8e8e93;
+        
+        &:active {
+          background: #e5e5ea;
+          transform: scale(0.98);
+        }
+      }
+      
+      &.confirm {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: #fff;
+        
+        &:active {
+          transform: scale(0.98);
+          opacity: 0.9;
+        }
+      }
+    }
+  }
 }
 </style>
