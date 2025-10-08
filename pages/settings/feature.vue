@@ -1,398 +1,377 @@
 <template>
-	<view class="feature-container">
-		<view class="header">
-			<text class="title">特征/附属物设置</text>
-			<button class="add-btn" @click="showAddDialog">+ 新增</button>
-		</view>
-		
-		<!-- 特征设置 -->
-		<view class="feature-section">
-			<text class="section-title">管点特征</text>
-			<view class="feature-list">
-				<view class="feature-item" v-for="(feature, index) in pointFeatures" :key="index">
-					<view class="feature-info">
-						<text class="feature-name">{{ feature.name }}</text>
-						<text class="feature-desc">{{ feature.description }}</text>
-					</view>
-					<view class="feature-actions">
-						<text class="edit-btn" @click="editFeature('point', index)">编辑</text>
-						<text class="delete-btn" @click="deleteFeature('point', index)">删除</text>
-					</view>
-				</view>
-			</view>
-		</view>
-		
-		<!-- 附属物设置 -->
-		<view class="feature-section">
-			<text class="section-title">附属物</text>
-			<view class="feature-list">
-				<view class="feature-item" v-for="(attachment, index) in attachments" :key="index">
-					<view class="feature-info">
-						<text class="feature-name">{{ attachment.name }}</text>
-						<text class="feature-desc">{{ attachment.description }}</text>
-					</view>
-					<view class="feature-actions">
-						<text class="edit-btn" @click="editFeature('attachment', index)">编辑</text>
-						<text class="delete-btn" @click="deleteFeature('attachment', index)">删除</text>
-					</view>
-				</view>
-			</view>
-		</view>
-		
-		<!-- 添加/编辑弹窗 -->
-		<uni-popup ref="featurePopup" type="center">
-			<view class="popup-content">
-				<text class="popup-title">{{ editingFeature ? '编辑' : '新增' }}{{ currentCategory === 'point' ? '特征' : '附属物' }}</text>
-				
-				<view class="form-item">
-					<text class="form-label">名称</text>
-					<input class="form-input" v-model="formData.name" placeholder="请输入名称" />
-				</view>
-				
-				<view class="form-item">
-					<text class="form-label">描述</text>
-					<textarea class="form-textarea" v-model="formData.description" placeholder="请输入描述信息" />
-				</view>
-				
-				<view class="form-item">
-					<text class="form-label">图标</text>
-					<view class="icon-selector" @click="selectIcon">
-						<text class="icon-preview">{{ formData.icon || '📍' }}</text>
-						<text class="icon-text">点击选择图标</text>
-					</view>
-				</view>
-				
-				<view class="popup-actions">
-					<button class="btn-cancel" @click="closePopup">取消</button>
-					<button class="btn-confirm" @click="saveFeature">保存</button>
-				</view>
-			</view>
-		</uni-popup>
-	</view>
+  <view class="container">
+    <!-- 顶部导航栏 -->
+    <view class="navbar">
+      <view class="nav-left" @click="goBack">
+        <uni-icons type="left" size="20" color="#fff"></uni-icons>
+      </view>
+      <view class="nav-title">特征/附属物设置</view>
+      <view class="nav-right" @click="openAddDialog">
+        <uni-icons type="plus" size="20" color="#fff"></uni-icons>
+      </view>
+    </view>
+
+    <!-- 内容区域：每个一级项 = 类别+类型 -->
+    <view class="content">
+      <view class="category-list">
+        <view v-for="(sec, idx) in sections" :key="sec.sectionKey" class="category-section">
+          <!-- 一级标题：排水特征(PS) -->
+          <view class="main-category" @click="toggleSection(idx)">
+            <view class="category-left">
+              <view class="category-icon">
+                <uni-icons type="folder" size="20" color="#666"></uni-icons>
+              </view>
+              <view class="category-info">
+                <text class="category-name">{{ sec.categoryName }}{{ sec.typeLabel }}({{ sec.categoryCode }})</text>
+                <text class="category-code">{{ sec.items.length }}项</text>
+              </view>
+            </view>
+            <view class="category-right">
+              <uni-icons :type="sec.expanded ? 'up' : 'down'" size="16" color="#999"></uni-icons>
+            </view>
+          </view>
+
+          <!-- 明细 -->
+          <view v-if="sec.expanded" class="sub-category-list">
+            <view v-if="sec.items.length">
+              <view v-for="item in sec.items" :key="item.pid" class="sub-row">
+                <label class="row-left" @click.stop="onToggleVisible(item)">
+                  <checkbox :checked="item.isVisible" @click.stop="()=>onToggleVisible(item)" />
+                  <text class="row-text">{{ item.itemName }}</text>
+                </label>
+                <view class="row-actions">
+                  <view class="action-btn delete" @click="onDelete(item)">
+                    <uni-icons type="trash" size="16" color="#FF3B30"></uni-icons>
+                  </view>
+                </view>
+              </view>
+            </view>
+            <view v-else class="empty-sub">
+              <uni-icons type="info" size="16" color="#ccc"></uni-icons>
+              <text class="empty-text">暂无数据</text>
+            </view>
+          </view>
+        </view>
+      </view>
+
+      <view v-if="!sections.length" class="empty-state">
+        <uni-icons type="folder" size="60" color="#ddd"></uni-icons>
+        <text class="empty-title">暂无数据</text>
+        <text class="empty-desc">点击右上角新增</text>
+      </view>
+    </view>
+
+    <!-- 新增弹窗 -->
+    <uni-popup ref="addDialog" type="center" :mask-click="false">
+      <view class="dialog">
+        <view class="dialog-header">
+          <text class="dialog-title">新增</text>
+          <view class="close-btn" @click="closeDialog">
+            <uni-icons type="close" size="18" color="#999"></uni-icons>
+          </view>
+        </view>
+
+        <view class="dialog-body">
+          <!-- 类别 -->
+          <view class="form-group">
+            <text class="label">类别</text>
+            <picker 
+              :value="selectedCategoryIndex" 
+              :range="categoryOptions" 
+              range-key="text"
+              @change="onCategoryChange"
+            >
+              <view class="picker-wrapper">
+                <text class="picker-text">{{ form.categoryCode ? getCategoryName(form.categoryCode) : '请选择类别' }}</text>
+                <uni-icons type="down" size="14" color="#999"></uni-icons>
+              </view>
+            </picker>
+          </view>
+
+          <!-- 类型：特征/附属物 -->
+          <view class="form-group">
+            <text class="label">类型</text>
+            <view class="type-selector">
+              <view :class="['type-chip', form.itemType==='feature' ? 'active' : '']" @click="form.itemType='feature'">特征</view>
+              <view :class="['type-chip', form.itemType==='appendant' ? 'active' : '']" @click="form.itemType='appendant'">附属物</view>
+            </view>
+          </view>
+
+          <!-- 名称 -->
+          <view class="form-group">
+            <text class="label">名称</text>
+            <input v-model="form.itemName" class="input" placeholder="请输入名称" maxlength="50" />
+          </view>
+
+          <!-- 是否展示 -->
+          <view class="form-group">
+            <text class="label">是否展示</text>
+            <switch :checked="form.isVisible" @change="e=>form.isVisible=e.detail.value" />
+          </view>
+        </view>
+
+        <view class="dialog-footer">
+          <button class="btn cancel" @click="closeDialog">取消</button>
+          <button class="btn confirm" @click="onSubmit">新增</button>
+        </view>
+      </view>
+    </uni-popup>
+  </view>
 </template>
 
 <script>
+import featureService from '@/services/feature_appendantEntityService.js';
+
 export default {
-	data() {
-		return {
-			pointFeatures: [
-				{ name: '井盖破损', description: '井盖出现裂缝或破损', icon: '⚠️' },
-				{ name: '积水严重', description: '井内积水过多', icon: '💧' },
-				{ name: '异味明显', description: '有明显异味散发', icon: '💨' },
-				{ name: '位置偏移', description: '实际位置与图纸不符', icon: '📍' }
-			],
-			attachments: [
-				{ name: '井盖照片', description: '井盖整体照片', icon: '📷' },
-				{ name: '内部照片', description: '井内部结构照片', icon: '🔍' },
-				{ name: '周边环境', description: '周边环境照片', icon: '🌍' },
-				{ name: '标识牌', description: '相关标识牌照片', icon: '🏷️' }
-			],
-			currentCategory: 'point',
-			editingFeature: null,
-			editingIndex: -1,
-			formData: {
-				name: '',
-				description: '',
-				icon: ''
-			},
-			availableIcons: ['📍', '⚠️', '💧', '💨', '📷', '🔍', '🌍', '🏷️', '🔧', '⚡', '🚰', '🔥', '📊', '✅', '❌', '❓']
-		}
-	},
-	onLoad() {
-		this.loadFeatures()
-	},
-	methods: {
-		loadFeatures() {
-			const savedPointFeatures = uni.getStorageSync('pointFeatures')
-			const savedAttachments = uni.getStorageSync('attachments')
-			
-			if (savedPointFeatures) {
-				this.pointFeatures = savedPointFeatures
-			}
-			if (savedAttachments) {
-				this.attachments = savedAttachments
-			}
-		},
-		
-		saveFeatures() {
-			uni.setStorageSync('pointFeatures', this.pointFeatures)
-			uni.setStorageSync('attachments', this.attachments)
-		},
-		
-		showAddDialog() {
-			uni.showActionSheet({
-				itemList: ['管点特征', '附属物'],
-				success: (res) => {
-					this.currentCategory = res.tapIndex === 0 ? 'point' : 'attachment'
-					this.editingFeature = null
-					this.editingIndex = -1
-					this.formData = { name: '', description: '', icon: '' }
-					this.$refs.featurePopup.open()
-				}
-			})
-		},
-		
-		editFeature(category, index) {
-			this.currentCategory = category
-			this.editingIndex = index
-			
-			const features = category === 'point' ? this.pointFeatures : this.attachments
-			this.editingFeature = features[index]
-			this.formData = { ...this.editingFeature }
-			
-			this.$refs.featurePopup.open()
-		},
-		
-		deleteFeature(category, index) {
-			const features = category === 'point' ? this.pointFeatures : this.attachments
-			const featureName = features[index].name
-			
-			uni.showModal({
-				title: '确认删除',
-				content: `确定要删除"${featureName}"吗？`,
-				success: (res) => {
-					if (res.confirm) {
-						if (category === 'point') {
-							this.pointFeatures.splice(index, 1)
-						} else {
-							this.attachments.splice(index, 1)
-						}
-						
-						this.saveFeatures()
-						uni.showToast({
-							title: '删除成功',
-							icon: 'success'
-						})
-					}
-				}
-			})
-		},
-		
-		selectIcon() {
-			uni.showActionSheet({
-				itemList: this.availableIcons,
-				success: (res) => {
-					this.formData.icon = this.availableIcons[res.tapIndex]
-				}
-			})
-		},
-		
-		saveFeature() {
-			if (!this.formData.name.trim()) {
-				uni.showToast({
-					title: '请输入名称',
-					icon: 'none'
-				})
-				return
-			}
-			
-			if (!this.formData.icon) {
-				this.formData.icon = '📍'
-			}
-			
-			const features = this.currentCategory === 'point' ? this.pointFeatures : this.attachments
-			
-			if (this.editingFeature) {
-				// 编辑模式
-				features[this.editingIndex] = { ...this.formData }
-			} else {
-				// 新增模式
-				features.push({ ...this.formData })
-			}
-			
-			this.saveFeatures()
-			this.closePopup()
-			
-			uni.showToast({
-				title: this.editingFeature ? '修改成功' : '添加成功',
-				icon: 'success'
-			})
-		},
-		
-		closePopup() {
-			this.$refs.featurePopup.close()
-			this.formData = { name: '', description: '', icon: '' }
-			this.editingFeature = null
-			this.editingIndex = -1
-		}
-	}
+  name: 'FeatureAppendantSettings',
+  data() {
+    return {
+      sections: [],          // [{sectionKey, categoryCode, categoryName, typeLabel, items:[], expanded:false}]
+      categories: [],        // [{categoryCode, categoryName}]
+      selectedCategoryIndex: 0,
+      form: {
+        categoryCode: '',
+        itemType: 'feature',
+        itemName: '',
+        isVisible: true
+      }
+    }
+  },
+  computed: {
+    categoryOptions() {
+      return this.categories.map(c => ({ value: c.categoryCode, text: c.categoryName || c.categoryCode }));
+    }
+  },
+  async onLoad() {
+    await this.loadData();
+  },
+  methods: {
+    goBack() { uni.navigateBack(); },
+    async loadData() {
+      uni.showLoading({ title: '加载中...' });
+      try {
+        const [s, c] = await Promise.all([
+          featureService.getSectionsStructure(),
+          featureService.getCategories()
+        ]);
+        if (s.success) {
+          this.sections = (s.data || []).map(x => ({ ...x, expanded: false }));
+        } else {
+          uni.showToast({ title: s.message || '加载失败', icon: 'error' });
+        }
+        if (c.success) {
+          this.categories = c.data || [];
+        }
+      } catch (e) {
+        console.error(e);
+        uni.showToast({ title: '加载失败', icon: 'error' });
+      } finally {
+        uni.hideLoading();
+      }
+    },
+    toggleSection(index) {
+      this.$set(this.sections[index], 'expanded', !this.sections[index].expanded);
+    },
+    getCategoryName(code) {
+      const found = this.categories.find(c => c.categoryCode === code);
+      return found ? (found.categoryName || found.categoryCode) : '';
+    },
+    openAddDialog() {
+      this.resetForm();
+      this.$refs.addDialog.open();
+    },
+    closeDialog() {
+      this.$refs.addDialog.close();
+      this.resetForm();
+    },
+    resetForm() {
+      this.form = {
+        categoryCode: this.categories[0]?.categoryCode || '',
+        itemType: 'feature',
+        itemName: '',
+        isVisible: true
+      };
+      this.selectedCategoryIndex = 0;
+    },
+    onCategoryChange(e) {
+      this.selectedCategoryIndex = e.detail.value;
+      this.form.categoryCode = this.categoryOptions[this.selectedCategoryIndex].value;
+    },
+    async onToggleVisible(item) {
+      if (!item || !item.pid) { 
+        console.warn('[FeatureVisibility] 缺少PID，无法更新', item);
+        uni.showToast({ title: '数据异常: 缺少PID', icon: 'error' }); 
+        return; 
+      }
+      const prev = item.isVisible;
+      const next = !prev;
+      console.log('[FeatureVisibility] 准备更新:', { pid: item.pid, name: item.itemName, prev, next });
+      item.isVisible = next;
+      const res = await featureService.setVisibility(item.pid, item.isVisible);
+      if (!res.success) {
+        console.error('[FeatureVisibility] DB更新失败，回滚:', res);
+        item.isVisible = prev;
+        uni.showToast({ title: res.message || '更新失败', icon: 'error' });
+      } else {
+        console.log('[FeatureVisibility] DB更新成功:', { pid: item.pid, isVisible: item.isVisible });
+      }
+    },
+    async onDelete(item) {
+      uni.showModal({
+        title: '确认删除',
+        content: `确定要删除"${item.itemName}"吗？`,
+        success: async (r) => {
+          if (!r.confirm) return;
+          uni.showLoading({ title: '删除中...' });
+          try {
+            const res = await featureService.deleteItem(item.pid);
+            if (res.success) {
+              uni.showToast({ title: '删除成功', icon: 'success' });
+              await this.loadData();
+            } else {
+              uni.showToast({ title: res.message || '删除失败', icon: 'error' });
+            }
+          } finally {
+            uni.hideLoading();
+          }
+        }
+      });
+    },
+    async onSubmit() {
+      if (!this.form.categoryCode) {
+        uni.showToast({ title: '请选择类别', icon: 'error' }); return;
+      }
+      if (!this.form.itemName.trim()) {
+        uni.showToast({ title: '请输入名称', icon: 'error' }); return;
+      }
+      uni.showLoading({ title: '添加中...' });
+      try {
+        const categoryName = this.getCategoryName(this.form.categoryCode);
+        const res = await featureService.addItem({
+          categoryCode: this.form.categoryCode,
+          categoryName,
+          itemType: this.form.itemType,
+          itemName: this.form.itemName.trim(),
+          isVisible: this.form.isVisible
+        });
+        if (res.success) {
+          uni.showToast({ title: '添加成功', icon: 'success' });
+          this.closeDialog();
+          await this.loadData();
+        } else {
+          uni.showToast({ title: res.message || '添加失败', icon: 'error' });
+        }
+      } finally {
+        uni.hideLoading();
+      }
+    }
+  }
 }
 </script>
 
 <style lang="scss" scoped>
-.feature-container {
-	padding: 20rpx;
-	background-color: #f8f8f8;
-	min-height: 100vh;
+.container {
+  background-color: #f8f9fa;
+  min-height: 100vh;
+}
+/* 导航栏 */
+.navbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 88rpx;
+  padding: 0 32rpx;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: #fff;
+  .nav-left, .nav-right {
+    width: 60rpx; height: 60rpx; display: flex; align-items: center; justify-content: center; border-radius: 50%;
+    &:active { background-color: rgba(255,255,255,0.1); }
+  }
+  .nav-title { font-size: 36rpx; font-weight: 600; }
+}
+.content { padding: 24rpx; }
+
+/* 分类卡片 */
+.category-list {
+  .category-section {
+    margin-bottom: 24rpx;
+    background: #fff;
+    border-radius: 16rpx;
+    overflow: hidden;
+    box-shadow: 0 4rpx 20rpx rgba(0,0,0,0.08);
+  }
+}
+.main-category {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 32rpx; background: #fff; transition: background-color .3s;
+  &:active { background-color: #f8f9fa; }
+  .category-left {
+    display: flex; align-items: center; flex: 1;
+    .category-icon { width: 48rpx; height: 48rpx; display:flex; align-items:center; justify-content:center; background:#f0f2f5; border-radius:12rpx; margin-right:24rpx;}
+    .category-info {
+      .category-name { display:block; font-size: 32rpx; font-weight:600; color:#1a1a1a; margin-bottom: 8rpx; }
+      .category-code { font-size: 24rpx; color:#8e8e93; }
+    }
+  }
+  .category-right { display:flex; align-items:center; }
 }
 
-.header {
-	display: flex;
-	justify-content: space-between;
-	align-items: center;
-	margin-bottom: 30rpx;
-	
-	.title {
-		font-size: 36rpx;
-		font-weight: bold;
-		color: #333;
-	}
-	
-	.add-btn {
-		background: #007AFF;
-		color: white;
-		border: none;
-		border-radius: 25rpx;
-		// padding: 15rpx 30rpx;
-		font-size: 28rpx;
-	}
+.sub-category-list {
+  border-top: 1rpx solid #f0f0f0; background:#fafafa; padding-bottom: 8rpx;
+  .sub-row {
+    display:flex; align-items:center; justify-content:space-between;
+    padding: 20rpx 32rpx; border-top:1rpx solid #f0f0f0; background:#fff;
+    .row-left { display:flex; align-items:center;
+      checkbox { margin-right: 16rpx; }
+      .row-text { font-size: 28rpx; color:#1a1a1a; }
+    }
+    .row-actions {
+      display:flex; gap: 16rpx;
+      .action-btn { width: 56rpx; height:56rpx; display:flex; align-items:center; justify-content:center; border-radius:12rpx;
+        &.delete { background: rgba(255,59,48,.1); }
+      }
+    }
+  }
+  .empty-sub { display:flex; align-items:center; justify-content:center; padding: 40rpx 32rpx;
+    .empty-text { font-size: 26rpx; color: #8e8e93; margin-left: 12rpx; }
+  }
 }
 
-.feature-section {
-	margin-bottom: 40rpx;
-	
-	.section-title {
-		display: block;
-		font-size: 30rpx;
-		font-weight: bold;
-		color: #333;
-		margin-bottom: 20rpx;
-	}
-	
-	.feature-list {
-		background: white;
-		border-radius: 15rpx;
-		overflow: hidden;
-		
-		.feature-item {
-			display: flex;
-			align-items: center;
-			padding: 30rpx;
-			border-bottom: 1rpx solid #f0f0f0;
-			
-			&:last-child {
-				border-bottom: none;
-			}
-			
-			.feature-info {
-				flex: 1;
-				
-				.feature-name {
-					display: block;
-					font-size: 30rpx;
-					color: #333;
-					margin-bottom: 8rpx;
-				}
-				
-				.feature-desc {
-					font-size: 24rpx;
-					color: #999;
-				}
-			}
-			
-			.feature-actions {
-				display: flex;
-				gap: 20rpx;
-				
-				.edit-btn, .delete-btn {
-					padding: 10rpx 20rpx;
-					border-radius: 15rpx;
-					font-size: 24rpx;
-				}
-				
-				.edit-btn {
-					background: #f0f0f0;
-					color: #666;
-				}
-				
-				.delete-btn {
-					background: #ffe6e6;
-					color: #ff4444;
-				}
-			}
-		}
-	}
+/* 空状态 */
+.empty-state {
+  display:flex; flex-direction:column; align-items:center; justify-content:center; padding:120rpx 32rpx;
+  .empty-title { font-size:32rpx; color:#8e8e93; margin:24rpx 0 12rpx; }
+  .empty-desc { font-size:26rpx; color:#c7c7cc; }
 }
 
-.popup-content {
-	background: white;
-	border-radius: 20rpx;
-	padding: 40rpx;
-	width: 600rpx;
-	
-	.popup-title {
-		display: block;
-		font-size: 32rpx;
-		font-weight: bold;
-		color: #333;
-		text-align: center;
-		margin-bottom: 40rpx;
-	}
-	
-	.form-item {
-		margin-bottom: 30rpx;
-		
-		.form-label {
-			display: block;
-			font-size: 28rpx;
-			color: #333;
-			margin-bottom: 15rpx;
-		}
-		
-		.form-input, .form-textarea {
-			width: 100%;
-			border: 2rpx solid #e5e5e5;
-			border-radius: 10rpx;
-			padding: 20rpx;
-			font-size: 28rpx;
-		}
-		
-		.form-textarea {
-			height: 120rpx;
-			resize: none;
-		}
-		
-		.icon-selector {
-			display: flex;
-			align-items: center;
-			border: 2rpx solid #e5e5e5;
-			border-radius: 10rpx;
-			padding: 20rpx;
-			
-			.icon-preview {
-				font-size: 40rpx;
-				margin-right: 20rpx;
-			}
-			
-			.icon-text {
-				font-size: 28rpx;
-				color: #666;
-			}
-		}
-	}
-	
-	.popup-actions {
-		display: flex;
-		gap: 20rpx;
-		margin-top: 40rpx;
-		
-		.btn-cancel, .btn-confirm {
-			flex: 1;
-			height: 70rpx;
-			border-radius: 35rpx;
-			font-size: 28rpx;
-			border: none;
-		}
-		
-		.btn-cancel {
-			background: #f0f0f0;
-			color: #666;
-		}
-		
-		.btn-confirm {
-			background: #007AFF;
-			color: white;
-		}
-	}
+/* 弹窗 */
+.dialog {
+  width: 640rpx; background:#fff; border-radius:24rpx; overflow:hidden;
+  .dialog-header { display:flex; align-items:center; justify-content:space-between; padding:32rpx; border-bottom:1rpx solid #f0f0f0;
+    .dialog-title { font-size:34rpx; font-weight:600; color:#1a1a1a; }
+    .close-btn { width:48rpx; height:48rpx; display:flex; align-items:center; justify-content:center; border-radius:50%;
+      &:active { background:#f0f0f0; }
+    }
+  }
+  .dialog-body { padding: 32rpx;
+    .form-group { margin-bottom: 28rpx;
+      .label { display:block; font-size:28rpx; color:#1a1a1a; margin-bottom: 12rpx; font-weight:500; }
+      .picker-wrapper { display:flex; align-items:center; justify-content:space-between; height:88rpx; padding:0 24rpx; border:2rpx solid #e5e5ea; border-radius:12rpx; background:#fff;
+        .picker-text { font-size:28rpx; color:#1a1a1a; }
+      }
+      .type-selector { display:flex; gap: 16rpx;
+        .type-chip { padding: 14rpx 24rpx; border-radius: 999rpx; background:#f2f2f7; color:#666; font-size:26rpx;
+          &.active { background:#e6e9ff; color:#4b5bff; }
+        }
+      }
+      .input { width:100%; height:88rpx; padding:0 24rpx; border:2rpx solid #e5e5ea; border-radius:12rpx; font-size:28rpx; color:#1a1a1a; box-sizing:border-box; }
+    }
+  }
+  .dialog-footer { display:flex; padding: 24rpx 32rpx 32rpx; gap:24rpx;
+    .btn { flex:1; height:88rpx; border:none; border-radius:12rpx; font-size:30rpx; font-weight:500;
+      &.cancel { background:#f2f2f7; color:#8e8e93; }
+      &.confirm { background: linear-gradient(135deg,#667eea 0%, #764ba2 100%); color:#fff; }
+    }
+  }
 }
 </style>

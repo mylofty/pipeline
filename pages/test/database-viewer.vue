@@ -107,6 +107,7 @@ export default {
       dbType: '未知',
       dbStatus: '未初始化',
       tableNames: [
+        'feature_appendant_entity',
               'project_manager',
       'pipe_point_entity', 
 	  'pipe_line_entity',
