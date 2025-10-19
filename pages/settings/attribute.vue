@@ -72,6 +72,7 @@
 <script>
 import AttributeGroup from './components/AttributeGroup.vue'
 import CollapseItem from './components/CollapseItem.vue'
+import FormService from '@/services/formService.js'
 
 export default {
 	components: {
@@ -259,66 +260,141 @@ export default {
 	},
 
 	methods: {
-		loadSettings() {
-			// 加载各类属性设置
-			const attributeTypes = [
-				'drainagePoint', 'drainageLine', 'powerPoint', 'powerLine',
-				'telecomPoint', 'telecomLine', 'waterPoint', 'waterLine',
-				'gasPoint', 'gasLine', 'industrialPoint', 'industrialLine'
-			]
+		async loadSettings() {
+			// 将各类型映射到 form_name 与 form_type
+			const typeMap = {
+				drainagePoint: { formName: 'PS', formType: 'gd' },
+				drainageLine: { formName: 'PS', formType: 'gx' },
+				powerPoint: { formName: 'DL', formType: 'gd' },
+				powerLine: { formName: 'DL', formType: 'gx' },
+				telecomPoint: { formName: 'TX', formType: 'gd' },
+				telecomLine: { formName: 'TX', formType: 'gx' },
+				waterPoint: { formName: 'JS', formType: 'gd' },
+				waterLine: { formName: 'JS', formType: 'gx' },
+				gasPoint: { formName: 'RQ', formType: 'gd' },
+				gasLine: { formName: 'RQ', formType: 'gx' },
+				industrialPoint: { formName: 'GY', formType: 'gd' },
+				industrialLine: { formName: 'GY', formType: 'gx' }
+			};
 
-			attributeTypes.forEach(type => {
-				const saved = uni.getStorageSync(`${type}AttributeSettings`)
-				if (saved) {
-					this[`${type}Attrs`] = saved
+			const attributeTypes = Object.keys(typeMap);
+
+			try {
+				// 并行加载所有类型
+				const promises = attributeTypes.map(async (typeKey) => {
+					const { formName, formType } = typeMap[typeKey];
+					const res = await FormService.getFields(formName, formType);
+					if (res.success) {
+						// 映射为 AttributeGroup 结构
+						const attrs = res.data.map(item => ({
+							key: item.field,
+							label: item.label,
+							description: item.field,
+							enabled: item.show,
+							required: false
+						}));
+						this[`${typeKey}Attrs`] = attrs;
+					} else {
+						console.warn(`加载 ${typeKey} 失败:`, res.message);
+					}
+				});
+
+				await Promise.all(promises);
+			} catch (e) {
+				console.error('加载属性设置失败:', e);
+				uni.showToast({ title: '属性加载失败', icon: 'none' });
+			}
+		},
+
+		async handleToggle(type, event) {
+			try {
+				const attributes = this[`${type}Attrs`];
+				const attr = attributes[event.index];
+				attr.enabled = event.value;
+
+				// 映射到 form_name 与 form_type
+				const typeMap = {
+					drainagePoint: { formName: 'PS', formType: 'gd' },
+					drainageLine: { formName: 'PS', formType: 'gx' },
+					powerPoint: { formName: 'DL', formType: 'gd' },
+					powerLine: { formName: 'DL', formType: 'gx' },
+					telecomPoint: { formName: 'TX', formType: 'gd' },
+					telecomLine: { formName: 'TX', formType: 'gx' },
+					waterPoint: { formName: 'JS', formType: 'gd' },
+					waterLine: { formName: 'JS', formType: 'gx' },
+					gasPoint: { formName: 'RQ', formType: 'gd' },
+					gasLine: { formName: 'RQ', formType: 'gx' },
+					industrialPoint: { formName: 'GY', formType: 'gd' },
+					industrialLine: { formName: 'GY', formType: 'gx' }
+				};
+				const { formName, formType } = typeMap[type];
+
+				// 更新数据库 show 状态
+				await FormService.setShowByField(formName, formType, attr.key, attr.enabled);
+			} catch (e) {
+				console.error('更新显示开关失败:', e);
+				uni.showToast({ title: '更新失败', icon: 'none' });
+			}
+		},
+
+		async saveSettings() {
+			// 批量写回数据库的 show 状态
+			const typeMap = {
+				drainagePoint: { formName: 'PS', formType: 'gd' },
+				drainageLine: { formName: 'PS', formType: 'gx' },
+				powerPoint: { formName: 'DL', formType: 'gd' },
+				powerLine: { formName: 'DL', formType: 'gx' },
+				telecomPoint: { formName: 'TX', formType: 'gd' },
+				telecomLine: { formName: 'TX', formType: 'gx' },
+				waterPoint: { formName: 'JS', formType: 'gd' },
+				waterLine: { formName: 'JS', formType: 'gx' },
+				gasPoint: { formName: 'RQ', formType: 'gd' },
+				gasLine: { formName: 'RQ', formType: 'gx' },
+				industrialPoint: { formName: 'GY', formType: 'gd' },
+				industrialLine: { formName: 'GY', formType: 'gx' }
+			};
+
+			const attributeTypes = Object.keys(typeMap);
+
+			try {
+				const items = [];
+				attributeTypes.forEach(typeKey => {
+					const { formName, formType } = typeMap[typeKey];
+					const attrs = this[`${typeKey}Attrs`] || [];
+					attrs.forEach(a => {
+						items.push({
+							formName, formType, field: a.key, show: a.enabled
+						});
+					});
+				});
+
+				const res = await FormService.batchUpdateShow(items);
+				if (!res.success) {
+					throw new Error(res.message || '批量更新失败');
 				}
-			})
+
+				uni.showToast({
+					title: '设置已保存',
+					icon: 'success'
+				});
+			} catch (e) {
+				console.error('保存设置失败:', e);
+				uni.showToast({ title: '保存失败', icon: 'none' });
+			}
 		},
 
-		handleToggle(type, event) {
-			const attributes = this[`${type}Attrs`]
-			const attr = attributes[event.index]
-			attr.enabled = event.value
-		},
-
-		saveSettings() {
-			// 保存所有属性设置
-			const attributeTypes = [
-				'drainagePoint', 'drainageLine', 'powerPoint', 'powerLine',
-				'telecomPoint', 'telecomLine', 'waterPoint', 'waterLine',
-				'gasPoint', 'gasLine', 'industrialPoint', 'industrialLine'
-			]
-
-			attributeTypes.forEach(type => {
-				uni.setStorageSync(`${type}AttributeSettings`, this[`${type}Attrs`])
-			})
-
-			uni.showToast({
-				title: '设置已保存',
-				icon: 'success'
-			})
-		},
-
-		resetSettings() {
-			// 重置所有属性为默认状态
-			const attributeTypes = [
-				'drainagePoint', 'drainageLine', 'powerPoint', 'powerLine',
-				'telecomPoint', 'telecomLine', 'waterPoint', 'waterLine',
-				'gasPoint', 'gasLine', 'industrialPoint', 'industrialLine'
-			]
-
-			attributeTypes.forEach(type => {
-				this[`${type}Attrs`].forEach(attr => {
-					// 必填属性和常用属性默认启用
-					attr.enabled = attr.required ||
-						['pointNumber', 'lineNumber', 'pointType', 'material', 'diameter', 'remark'].includes(attr.key)
-				})
-			})
-
-			uni.showToast({
-				title: '已重置为默认设置',
-				icon: 'success'
-			})
+		async resetSettings() {
+			// 直接从数据库重新加载，作为“重置为默认（DB当前状态）”
+			try {
+				await this.loadSettings();
+				uni.showToast({
+					title: '已重置为数据库状态',
+					icon: 'success'
+				});
+			} catch (e) {
+				console.error('重置失败:', e);
+				uni.showToast({ title: '重置失败', icon: 'none' });
+			}
 		},
 		// 添加特征
 		addFeature() {
