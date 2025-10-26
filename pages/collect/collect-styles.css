@@ -17,6 +17,180 @@
 	z-index: 10;
 }
 
+/* 图层选择器样式 */
+.layer-selector {
+	display: flex;
+	flex-direction: column;
+	width: 200px;
+}
+
+.picker-display {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	justify-content: space-between;
+	padding-top: 8px;
+	padding-bottom: 8px;
+	padding-left: 12px;
+	padding-right: 12px;
+	background-color: rgba(255, 255, 255, 0.9);
+	border-radius: 6px;
+	border-width: 1px;
+	border-style: solid;
+	border-color: #e0e0e0;
+	min-width: 120px;
+}
+
+.picker-text {
+	font-size: 14px;
+	color: #333333;
+	flex: 1;
+	lines: 1;
+}
+
+.arrow {
+	font-size: 12px;
+	color: #666666;
+	margin-left: 8px;
+}
+
+.arrow-up {
+	transform: rotate(180deg);
+}
+
+/* 下拉框覆盖层 - 使用固定定位 */
+.dropdown-overlay {
+	position: fixed;
+	top: 60px;
+	left: 20px;
+	width: 200px;
+	z-index: 9999;
+}
+
+.dropdown-content {
+	background-color: #ffffff;
+	border-width: 1px;
+	border-style: solid;
+	border-color: #e0e0e0;
+	border-radius: 8px;
+	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.dropdown-scroll {
+	max-height: 350px;
+}
+
+.dropdown-item {
+	padding-top: 8px;
+	padding-bottom: 8px;
+	padding-left: 10px;
+	padding-right: 10px;
+	background-color: #ffffff;
+}
+
+.dropdown-text {
+	font-size: 13px;
+	color: #333333;
+}
+
+.select-all-item {
+	font-weight: 500;
+	border-bottom-width: 1px;
+	border-bottom-style: solid;
+	border-bottom-color: #f0f0f0;
+}
+
+.select-all-item .dropdown-text {
+	color: #007AFF;
+}
+
+.dropdown-divider {
+	height: 1px;
+	background-color: #e0e0e0;
+	margin-top: 4px;
+	margin-bottom: 4px;
+}
+
+.category-group {
+	border-bottom-width: 1px;
+	border-bottom-style: solid;
+	border-bottom-color: #f0f0f0;
+}
+
+.category-item {
+	background-color: #f8f9fa;
+	font-weight: 500;
+}
+
+.subcategory-item {
+	padding-left: 25px;
+	background-color: #ffffff;
+}
+
+.subcategory-list {
+	display: flex;
+	flex-direction: column;
+}
+
+.checkbox-wrapper {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+}
+
+.checkbox {
+	width: 16px;
+	height: 16px;
+	border-width: 1px;
+	border-style: solid;
+	border-color: #dddddd;
+	border-radius: 3px;
+	margin-right: 6px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-size: 11px;
+	background-color: #ffffff;
+	text-align: center;
+	line-height: 16px;
+}
+
+.checkbox.checked {
+	background-color: #007AFF;
+	border-color: #007AFF;
+	color: #ffffff;
+}
+
+.checkbox.partially-checked {
+	background-color: #007AFF;
+	border-color: #007AFF;
+	color: #ffffff;
+}
+
+.layer-name {
+	font-size: 13px;
+	color: #333333;
+	flex: 1;
+}
+
+.category-name {
+	font-weight: 500;
+}
+
+.sublayer-name {
+	font-weight: normal;
+}
+
+.expand-arrow {
+	font-size: 12px;
+	color: #666666;
+	margin-left: 8px;
+}
+
+.expand-arrow.expanded {
+	transform: rotate(180deg);
+}
+
 .search-container {
 	flex: 1;
 	display: flex;

@@ -1,32 +1,64 @@
 <template>
-  <div class="collect-container" @click="closeDropdown">
+  <div class="collect-container" @tap="closeDropdown">
     <!-- 顶部工具栏 -->
     <div class="top-toolbar">
-      <!-- 图层管理下拉框 -->
-      <LayerSelector 
-        :layerOptions="layerOptions"
-        :showDropdown="showDropdown"
-        :isAllSelected="isAllSelected"
-        :isAllExpanded="isAllExpanded"
-        @toggle-dropdown="toggleDropdown"
-        @toggle-select-all="toggleSelectAll"
-        @toggle-expand-all="toggleExpandAll"
-        @toggle-category="toggleCategory"
-        @select-sub-layer="selectSubLayer"
-        @toggle-expand="toggleExpand"
-        @get-display-text="getDisplayText"
-      />
+      <!-- 图层管理下拉框 - 只显示选择器按钮 -->
+      <div class="layer-selector">
+        <div class="picker-display" @tap.stop="toggleDropdown">
+          <text class="picker-text">{{ getDisplayText() }}</text>
+          <text class="arrow" :class="{ 'arrow-up': showDropdown }">▼</text>
+        </div>
+      </div>
 
-    <!-- 探点号搜索框 -->
-    <div class="search-container">
+      <!-- 探点号搜索框 -->
+      <div class="search-container">
         <input type="text" placeholder="搜索管点物探点号..." v-model="searchPointNo" @input="onSearchInput" @confirm="searchPoint"
             class="search-input" confirm-type="search" @click.stop />
         <div class="search-btn" @click="searchPoint">
             <text>🔍</text>
         </div>
-    </div>
-	
+      </div>
 
+    </div>
+    
+    <!-- 下拉框 - 使用固定定位，放在容器外层 -->
+    <div class="dropdown-overlay" v-if="showDropdown" @tap.stop>
+      <div class="dropdown-content">
+        <div class="dropdown-item select-all-item" @tap="toggleSelectAll">
+          <text class="dropdown-text">{{ isAllSelected ? '全不选' : '全选' }}</text>
+        </div>
+        <div class="dropdown-item select-all-item" @tap="toggleExpandAll">
+          <text class="dropdown-text">{{ isAllExpanded ? '全部收起' : '全部展开' }}</text>
+        </div>
+        <div class="dropdown-divider"></div>
+        
+        <scroll-view class="dropdown-scroll" scroll-y="true">
+          <div v-for="(category, categoryIndex) in layerOptions" :key="categoryIndex" class="category-group">
+            <div class="dropdown-item category-item">
+              <div class="checkbox-wrapper">
+                <text class="checkbox" :class="{
+                  checked: isCategoryFullySelected(categoryIndex),
+                  'partially-checked': isCategorySelected(categoryIndex) && !isCategoryFullySelected(categoryIndex)
+                }" @tap="toggleCategory(categoryIndex)">{{
+                  isCategoryFullySelected(categoryIndex) ? '✓' : (isCategorySelected(categoryIndex) ? '◐' : '') }}</text>
+                <text class="layer-name category-name" @tap="toggleExpand(categoryIndex)">{{ category.name }}</text>
+                <text class="expand-arrow" :class="{ expanded: category.expanded }"
+                  @tap="toggleExpand(categoryIndex)">▼</text>
+              </div>
+            </div>
+            <div v-if="category.expanded" class="subcategory-list">
+              <div v-for="(child, childIndex) in category.children" :key="childIndex" class="dropdown-item subcategory-item"
+                @tap="selectSubLayer(categoryIndex, childIndex)">
+                <div class="checkbox-wrapper">
+                  <text class="checkbox" :class="{ checked: child.selected }">{{
+                    child.selected ? '✓' : '' }}</text>
+                  <text class="layer-name sublayer-name">{{ child.name }}</text>
+                </div>
+              </div>
+            </div>
+          </div>
+        </scroll-view>
+      </div>
     </div>
 
     <!-- 地图容器 -->
@@ -80,12 +112,10 @@
 <script>
 import { ref, reactive, onMounted, onUnmounted, computed } from 'vue'
 import MapToolbar from './components/MapToolbar.nvue'
-import LayerSelector from './components/LayerSelector.vue'
 
 export default {
   components: {
-    MapToolbar,
-    LayerSelector
+    MapToolbar
   },
   setup() {
     // 响应式数据
@@ -242,7 +272,11 @@ export default {
 
     // 方法实现
     const toggleDropdown = () => {
+      console.log('=== toggleDropdown 被调用 ===')
+      console.log('当前 showDropdown 值:', showDropdown.value)
       showDropdown.value = !showDropdown.value
+      console.log('切换后 showDropdown 值:', showDropdown.value)
+      console.log('layerOptions 数据:', JSON.stringify(layerOptions.value))
     }
 
     const selectLayer = (index) => {
@@ -273,7 +307,9 @@ export default {
     })
 
     const toggleSelectAll = () => {
+      console.log('=== toggleSelectAll 被调用 ===')
       const shouldSelectAll = !isAllSelected.value
+      console.log('shouldSelectAll:', shouldSelectAll)
       layerOptions.value.forEach(category => {
         category.children.forEach(child => {
           child.selected = shouldSelectAll
@@ -287,7 +323,9 @@ export default {
     }
 
     const toggleExpandAll = () => {
+      console.log('=== toggleExpandAll 被调用 ===')
       const shouldExpandAll = !isAllExpanded.value
+      console.log('shouldExpandAll:', shouldExpandAll)
       layerOptions.value.forEach(category => {
         category.expanded = shouldExpandAll
       })
@@ -298,8 +336,12 @@ export default {
     }
 
     const toggleExpand = (categoryIndex) => {
+      console.log('=== toggleExpand 被调用 ===')
+      console.log('categoryIndex:', categoryIndex)
       const category = layerOptions.value[categoryIndex]
+      console.log('category:', category)
       category.expanded = !category.expanded
+      console.log('展开状态:', category.expanded)
       
       uni.showToast({
         title: category.expanded ? `已展开${category.name}` : `已收起${category.name}`,
@@ -308,10 +350,14 @@ export default {
     }
 
     const toggleCategory = (categoryIndex) => {
+      console.log('=== toggleCategory 被调用 ===')
+      console.log('categoryIndex:', categoryIndex)
       const category = layerOptions.value[categoryIndex]
+      console.log('category:', category)
       
       // 如果分类未展开，先展开
       if (!category.expanded) {
+        console.log('分类未展开，先展开')
         category.expanded = true
         return
       }
@@ -319,6 +365,7 @@ export default {
       // 如果已展开，则切换该分类下所有子项的选中状态
       const hasSelected = category.children.some(child => child.selected)
       const shouldSelect = !hasSelected
+      console.log('hasSelected:', hasSelected, 'shouldSelect:', shouldSelect)
       
       category.children.forEach(child => {
         child.selected = shouldSelect
@@ -343,8 +390,13 @@ export default {
     }
 
     const selectSubLayer = (categoryIndex, childIndex) => {
+      console.log('=== selectSubLayer 被调用 ===')
+      console.log('categoryIndex:', categoryIndex, 'childIndex:', childIndex)
+      const child = layerOptions.value[categoryIndex].children[childIndex]
+      console.log('当前子图层:', child)
       layerOptions.value[categoryIndex].children[childIndex].selected = 
         !layerOptions.value[categoryIndex].children[childIndex].selected
+      console.log('切换后选中状态:', layerOptions.value[categoryIndex].children[childIndex].selected)
       updateLayerDisplay()
     }
 
@@ -360,6 +412,7 @@ export default {
     }
 
     const getDisplayText = () => {
+      console.log('=== getDisplayText 被调用 ===')
       const selectedItems = []
       layerOptions.value.forEach(category => {
         category.children.forEach(child => {
@@ -368,6 +421,8 @@ export default {
           }
         })
       })
+      
+      console.log('选中的图层数量:', selectedItems.length)
       
       if (selectedItems.length === 0) {
         return '请选择图层'
@@ -379,6 +434,8 @@ export default {
     }
 
     const closeDropdown = () => {
+      console.log('=== closeDropdown 被调用 ===')
+      console.log('关闭下拉框，当前状态:', showDropdown.value)
       showDropdown.value = false
     }
 
@@ -1160,7 +1217,10 @@ export default {
     // 生命周期
     onMounted(() => {
       // 初始化数据
-      console.log('采集页面初始化完成')
+      console.log('=== 采集页面初始化完成 ===')
+      console.log('showDropdown 初始值:', showDropdown.value)
+      console.log('layerOptions 初始值:', JSON.stringify(layerOptions.value))
+      console.log('toggleDropdown 方法是否存在:', typeof toggleDropdown)
 
       // 检查网络状态
       checkNetworkStatus()
